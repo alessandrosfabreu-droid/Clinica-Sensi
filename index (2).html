@@ -1,0 +1,1061 @@
+<title>Painel Clínica Sensi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+/* ===== Layout concept: single-page dashboard, top-level tab switcher (Prazo / Custo / Fotos / Próximos Passos),
+   summary-first cards, horizontal meter bars for budget comparisons, lightbox photo gallery.
+   Visual identity continues the "Template AA" house style already used across the project's PDF/Excel deliverables:
+   warm sand paper ground, dark-brown ink, gold accent, Georgia display + Inter body/data. ===== */
+:root{
+  --bg:#f6f0df; --surface:#ffffff; --surface-soft:#fbf6e8; --surface-raised:#fffdf7;
+  --ink:#3d3324; --ink-soft:#73614a; --ink-faint:#a8977c;
+  --accent:#a17c2f; --accent-soft:#d9b871; --accent-softer:#eadfbc;
+  --line:#e1d3a9; --line-soft:#ece2c4;
+  --good:#4f7a4a; --good-soft:#e3ecdd;
+  --warn:#b3762c; --warn-soft:#f3e6cf;
+  --bad:#9a3b2a; --bad-soft:#f3ddd6;
+  --shadow: 0 1px 2px rgba(61,51,36,.06), 0 8px 24px -12px rgba(61,51,36,.18);
+  --font-display:'Inter',system-ui,-apple-system,sans-serif;
+  --font-body:'Inter',system-ui,-apple-system,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#211a10; --surface:#2c2316; --surface-soft:#352a19; --surface-raised:#3a2f1c;
+    --ink:#f2e6c8; --ink-soft:#cbb98f; --ink-faint:#8d7c5c;
+    --accent:#e3c884; --accent-soft:#b48f45; --accent-softer:#4a3c22;
+    --line:#4a3c22; --line-soft:#3a2f1c;
+    --good:#9bc18f; --good-soft:#2c3326;
+    --warn:#e3b56a; --warn-soft:#3a2f1c;
+    --bad:#e2897a; --bad-soft:#3a2420;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#211a10; --surface:#2c2316; --surface-soft:#352a19; --surface-raised:#3a2f1c;
+  --ink:#f2e6c8; --ink-soft:#cbb98f; --ink-faint:#8d7c5c;
+  --accent:#e3c884; --accent-soft:#b48f45; --accent-softer:#4a3c22;
+  --line:#4a3c22; --line-soft:#3a2f1c;
+  --good:#9bc18f; --good-soft:#2c3326;
+  --warn:#e3b56a; --warn-soft:#3a2f1c;
+  --bad:#e2897a; --bad-soft:#3a2420;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased}
+img{max-width:100%}
+[hidden]{display:none!important}
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px 64px}
+::selection{background:var(--accent-soft);color:var(--ink)}
+h1,h2,h3{font-family:var(--font-display);font-weight:800;letter-spacing:-.01em;text-wrap:balance;margin:0}
+.eyebrow{font-family:var(--font-body);font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- header ---------- */
+header.top{
+  background:linear-gradient(115deg,var(--ink) 0%, #4c4024 55%, var(--accent) 140%);
+  color:#f3ead2; padding:28px 16px 22px; position:relative; overflow:hidden;
+}
+:root[data-theme="dark"] header.top{
+  background:linear-gradient(115deg,#140f09 0%, #332a18 55%, var(--accent) 160%);
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) header.top{
+  background:linear-gradient(115deg,#140f09 0%, #332a18 55%, var(--accent) 160%);
+} }
+header.top::after{content:"";position:absolute;inset:0;background:
+  radial-gradient(480px 220px at 85% -20%, rgba(227,200,132,.35), transparent 70%);
+  pointer-events:none}
+.top-inner{max-width:1040px;margin:0 auto;position:relative;z-index:1}
+.top-eyebrow{font-size:11px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:#e3c884;opacity:.95}
+header.top h1{font-size:25px;font-weight:800;letter-spacing:-.01em;color:#fff;margin-top:4px}
+header.top p.sub{margin:6px 0 0;font-size:13.5px;color:#e9dfc4;opacity:.92}
+.updated-pill{display:inline-flex;align-items:center;gap:6px;margin-top:14px;background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:5px 12px;font-size:12px;color:#f3ead2}
+.updated-pill .dot{width:6px;height:6px;border-radius:50%;background:#9bd18a;box-shadow:0 0 0 3px rgba(155,209,138,.25)}
+.theme-toggle{position:absolute;top:18px;right:16px;z-index:2;width:38px;height:38px;border-radius:50%;
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#f3ead2;display:flex;
+  align-items:center;justify-content:center;cursor:pointer;transition:background .15s}
+.theme-toggle:hover{background:rgba(255,255,255,.2)}
+.theme-toggle svg{width:18px;height:18px}
+
+/* ---------- tabs ---------- */
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.tabs-inner{max-width:1040px;margin:0 auto;display:flex;gap:2px;padding:0 10px;overflow-x:auto;scrollbar-width:none}
+.tabs-inner::-webkit-scrollbar{display:none}
+.tab-btn{flex:0 0 auto;appearance:none;border:none;background:none;font-family:var(--font-body);font-weight:600;
+  font-size:13.5px;color:var(--ink-soft);padding:14px 14px 12px;cursor:pointer;border-bottom:2.5px solid transparent;
+  display:flex;align-items:center;gap:7px;white-space:nowrap;transition:color .15s}
+.tab-btn svg{width:16px;height:16px;flex:none}
+.tab-btn:hover{color:var(--ink)}
+.tab-btn[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+
+main{padding-top:22px}
+section.panel{display:flex;flex-direction:column;gap:18px}
+
+/* ---------- cards ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 18px 20px;box-shadow:var(--shadow)}
+.card-title{position:relative;font-family:var(--font-display);font-size:16px;font-weight:700;margin:0 0 2px;padding-left:12px}
+.card-title::before{content:"";position:absolute;left:0;top:2px;bottom:2px;width:3px;border-radius:2px;background:var(--accent)}
+.card-sub{font-size:12.5px;color:var(--ink-soft);margin:0 0 14px 12px;line-height:1.5}
+
+/* ---------- kpi row (cards individuais em grade) ---------- */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
+.kpi{background:var(--surface-soft);border:1px solid var(--line);border-radius:14px;padding:14px 15px;min-width:0}
+.kpi .k-label{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint)}
+.kpi .k-value{font-family:var(--font-display);font-size:20px;font-weight:800;margin-top:4px;color:var(--ink);
+  overflow-wrap:anywhere;line-height:1.2;white-space:nowrap}
+@media (max-width:420px){ .kpi .k-value{font-size:18px} }
+.kpi .k-value.accent{color:var(--accent)}
+.kpi .k-note{font-size:11.5px;color:var(--ink-soft);margin-top:3px}
+
+/* ---------- ring ---------- */
+.ring-wrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.ring{flex:none}
+.ring-label{font-size:12px;color:var(--ink-soft)}
+.ring-value{font-family:var(--font-display);font-size:30px;font-weight:700}
+
+/* ---------- meter rows (orçado x realizado por grupo) ---------- */
+.meter-row{padding:10px 0;border-bottom:1px solid var(--line-soft)}
+.meter-row:last-child{border-bottom:none}
+.meter-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+.meter-name{font-size:13px;font-weight:600;color:var(--ink)}
+.meter-vals{font-size:12px;color:var(--ink-soft);white-space:nowrap}
+.meter-vals b{color:var(--ink);font-weight:700}
+.meter-track{position:relative;height:9px;border-radius:999px;background:var(--surface-soft);border:1px solid var(--line);overflow:hidden}
+.meter-fill{position:absolute;inset:0 auto 0 0;border-radius:999px;background:linear-gradient(90deg,var(--accent-soft),var(--accent))}
+.meter-fill.over{background:linear-gradient(90deg,var(--bad),#c4583f)}
+.meter-pct{font-size:11px;color:var(--ink-faint);margin-top:4px}
+
+/* ---------- pills / badges ---------- */
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:700}
+.pill.good{background:var(--good-soft);color:var(--good)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.neutral{background:var(--surface-soft);color:var(--ink-soft);border:1px solid var(--line)}
+.badge-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;
+  background:var(--accent);color:#fff;font-size:11px;font-weight:700;flex:none}
+:root[data-theme="dark"] .badge-num{color:#241d10}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .badge-num{color:#241d10} }
+
+/* ---------- lista simples ---------- */
+.list-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line-soft);font-size:13px}
+.list-row:last-child{border-bottom:none}
+.list-row .l-name{color:var(--ink);font-weight:500}
+.list-row .l-sub{color:var(--ink-faint);font-size:11.5px;display:block;margin-top:1px}
+.list-row .l-val{font-weight:700;color:var(--ink);white-space:nowrap}
+.receipt-block{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.receipt-accordion-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;appearance:none;border:none;background:none;padding:0;cursor:pointer;font-family:inherit;text-align:left}
+.receipt-accordion-btn:focus-visible{outline:1.5px solid var(--accent);outline-offset:3px;border-radius:6px}
+.receipt-accordion-count{display:block;font-size:12px;color:var(--ink-soft);font-weight:500;margin-top:2px}
+.receipt-accordion-chevron{flex:none;color:var(--ink-faint);transition:transform .2s ease}
+.receipt-accordion-btn[aria-expanded="true"] .receipt-accordion-chevron{transform:rotate(180deg)}
+.receipt-accordion-body{margin-top:10px}
+.receipt-group-title{font-size:11px;font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 6px}
+.receipt-group-title:first-of-type{margin-top:0}
+.receipt-row{display:flex;align-items:center;gap:10px;padding:8px 6px;margin:0 -6px;border-bottom:1px solid var(--line-soft);border-radius:8px}
+.receipt-row:last-child{border-bottom:none}
+.receipt-row.has-receipt{cursor:pointer;transition:background-color .15s ease}
+.receipt-row.has-receipt:hover, .receipt-row.has-receipt:focus-visible{background:var(--surface-soft)}
+.receipt-row.has-receipt:focus-visible{outline:1.5px solid var(--accent);outline-offset:1px}
+.receipt-icon{width:34px;height:34px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;background:var(--accent-softer);color:var(--accent)}
+.receipt-icon svg{width:17px;height:17px}
+.receipt-icon-empty{background:var(--surface-soft);color:var(--ink-faint)}
+.receipt-info{flex:1;min-width:0}
+.receipt-desc{font-size:12.5px;font-weight:600;color:var(--ink)}
+.receipt-meta{font-size:11px;color:var(--ink-soft);margin-top:1px}
+.receipt-noproof{color:var(--ink-faint);font-style:italic}
+.receipt-val{font-size:12.5px;font-weight:700;color:var(--ink);white-space:nowrap;flex:none}
+
+/* ---------- timeline (prazo) ---------- */
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;gap:14px;position:relative}
+.tl-rail{display:flex;flex-direction:column;align-items:center;flex:none}
+.tl-dot{width:11px;height:11px;border-radius:50%;background:var(--accent);margin-top:5px;box-shadow:0 0 0 4px var(--accent-softer)}
+.tl-line{flex:1;width:2px;background:var(--line);margin-top:2px}
+.tl-item:last-child .tl-line{display:none}
+.tl-body{padding-bottom:20px;flex:1;min-width:0}
+.tl-dates{font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.03em;text-transform:uppercase}
+.tl-name{font-size:14px;font-weight:700;margin:3px 0 2px}
+.tl-meta{font-size:12px;color:var(--ink-soft)}
+
+/* ---------- progress bar (prazo hero) ---------- */
+.bigbar{height:14px;border-radius:999px;background:var(--surface-soft);border:1px solid var(--line);overflow:hidden;position:relative}
+.bigbar-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--accent-soft),var(--accent))}
+.bigbar-today{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+
+/* ---------- gallery ---------- */
+.gallery-group{margin-bottom:22px;border-radius:12px;transition:box-shadow .3s ease, background-color .3s ease}
+.gallery-group:last-child{margin-bottom:0}
+.gallery-group.gg-highlight{box-shadow:0 0 0 2px var(--accent);background:var(--surface-soft)}
+.gg-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.gg-title{font-size:14px;font-weight:700;color:var(--ink)}
+.gg-range{font-size:11.5px;color:var(--ink-soft)}
+.grid-photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:8px}
+.photo-thumb{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;border:1px solid var(--line);
+  cursor:pointer;background:var(--surface-soft)}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .25s}
+.photo-thumb:hover img{transform:scale(1.06)}
+.photo-thumb .pn{position:absolute;top:5px;left:5px;background:rgba(36,29,16,.72);color:#f3ead2;font-size:10px;
+  font-weight:700;padding:2px 6px;border-radius:999px}
+
+/* ---------- lightbox ---------- */
+.lightbox{position:fixed;inset:0;background:rgba(18,14,8,.92);z-index:100;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:16px;padding-top:calc(16px + env(safe-area-inset-top,0px));
+  padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+.lb-img-wrap{max-width:min(900px,94vw);max-height:62vh;display:flex;align-items:center;justify-content:center}
+.lightbox img{max-width:100%;max-height:62vh;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.lb-cap{max-width:min(680px,92vw);color:#f3ead2;text-align:center;margin-top:14px}
+.lb-cap .lb-label{font-weight:700;font-size:14.5px}
+.lb-cap .lb-meta{font-size:12px;color:#cbb98f;margin-top:3px}
+.lb-cap .lb-obs{font-size:12px;color:#d9c79a;margin-top:8px;line-height:1.5;max-height:72px;overflow:auto}
+.lb-controls{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:14px;display:flex;gap:8px}
+.lb-nav{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#f3ead2;display:flex;
+  align-items:center;justify-content:center;cursor:pointer;font-size:18px}
+.lb-nav.prev{left:10px}.lb-nav.next{right:10px}
+.lb-close{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+  color:#f3ead2;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px}
+
+/* ---------- empty state ---------- */
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:34px 18px;color:var(--ink-soft)}
+.empty svg{width:40px;height:40px;color:var(--accent-soft)}
+.empty h3{font-size:15px;color:var(--ink)}
+.empty p{font-size:12.5px;max-width:320px;margin:0;line-height:1.55}
+
+/* ---------- insumos flag list ---------- */
+.flag-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;
+  background:var(--bad-soft);margin-bottom:7px}
+.flag-item:last-child{margin-bottom:0}
+.flag-name{font-size:12.5px;font-weight:600;color:var(--ink)}
+.flag-code{font-size:10.5px;color:var(--ink-faint);font-family:ui-monospace,monospace}
+.flag-pct{font-size:14px;font-weight:800;color:var(--bad);white-space:nowrap}
+
+/* ---------- split stats ---------- */
+.split{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.split-3{grid-template-columns:repeat(3,1fr)}
+@media (max-width:560px){ .split-3{grid-template-columns:1fr} }
+.split .s-card{min-width:0;border-radius:12px;padding:13px 14px;background:var(--surface-soft);border:1px solid var(--line)}
+.split .s-label{font-size:11px;color:var(--ink-faint);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.split .s-val{font-family:var(--font-display);font-size:19px;font-weight:700;margin-top:3px;white-space:nowrap;overflow-wrap:anywhere}
+
+footer.foot{max-width:1040px;margin:30px auto 0;padding:0 16px;font-size:11.5px;color:var(--ink-faint);text-align:center}
+
+/* ---------- line chart (previsto x executado) ---------- */
+.linechart{width:100%;height:auto;overflow:visible}
+.linechart .gridline{stroke:var(--line-soft);stroke-width:1}
+.linechart .axis-label{font-family:var(--font-body);font-size:10.5px;fill:var(--ink-faint)}
+.linechart .lc-prev{fill:none;stroke:var(--accent-soft);stroke-width:2.5;stroke-dasharray:5 4}
+.linechart .lc-exec{fill:none;stroke:var(--accent);stroke-width:2.75}
+.linechart .lc-dot{stroke:var(--surface);stroke-width:2}
+.lc-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:11.5px;color:var(--ink-soft)}
+.lc-legend span{display:inline-flex;align-items:center;gap:6px}
+.lc-legend i{width:16px;height:2.5px;border-radius:2px;display:inline-block}
+
+/* ---------- toggle switch (fotos: por serviço / linha do tempo) ---------- */
+.toggle-group{display:inline-flex;background:var(--surface-soft);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+.toggle-btn{appearance:none;border:none;background:none;font-family:var(--font-body);font-weight:600;font-size:12px;
+  color:var(--ink-soft);padding:7px 14px;border-radius:999px;cursor:pointer;transition:background .15s,color .15s}
+.toggle-btn.active{background:var(--accent);color:#fff}
+:root[data-theme="dark"] .toggle-btn.active{color:#241d10}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .toggle-btn.active{color:#241d10} }
+
+/* ---------- categoria bars (projeção) ---------- */
+.cat-row{padding:11px 0;border-bottom:1px solid var(--line-soft)}
+.cat-row:last-child{border-bottom:none}
+.cat-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:3px}
+.cat-name{font-size:13.5px;font-weight:700;color:var(--ink)}
+.cat-desc{font-size:11.5px;color:var(--ink-faint);margin-bottom:6px}
+.cat-track{height:20px;border-radius:7px;background:var(--surface-soft);border:1px solid var(--line);overflow:hidden;position:relative}
+.cat-fill{height:100%;border-radius:7px 0 0 7px;background:linear-gradient(90deg,var(--ink) 0%,var(--accent) 160%);
+  display:flex;align-items:center;justify-content:flex-end;padding-right:8px;min-width:fit-content}
+.cat-fill .cv{font-size:11px;font-weight:700;color:#f3ead2;white-space:nowrap}
+
+/* ---------- gantt (projeção) ---------- */
+.gantt{overflow-x:auto}
+.gantt-grid{min-width:560px}
+.gantt-head{display:grid;grid-template-columns:200px repeat(4,1fr);font-size:10.5px;font-weight:700;color:var(--ink-faint);
+  text-transform:uppercase;letter-spacing:.04em;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.gantt-row{display:grid;grid-template-columns:200px repeat(4,1fr);align-items:center;min-height:34px;border-bottom:1px solid var(--line-soft)}
+.gantt-row:last-child{border-bottom:none}
+.gantt-label{font-size:12px;color:var(--ink);padding-right:10px;line-height:1.3}
+.gantt-track{position:relative;grid-column:2/6;height:20px;background:
+  repeating-linear-gradient(to right,var(--line-soft) 0,var(--line-soft) 1px,transparent 1px,transparent 25%)}
+.gantt-bar{position:absolute;top:2px;height:16px;border-radius:5px;background:linear-gradient(90deg,var(--accent-soft),var(--accent));
+  display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;color:#3d3324;white-space:nowrap;padding:0 4px}
+.gantt-bar.bar-plan{background:var(--surface-soft);border:1.5px dashed var(--accent-soft);color:var(--ink-soft);box-shadow:none}
+.gantt-bar.bar-real{background:linear-gradient(90deg,var(--accent),var(--ink));color:#f3ead2}
+.gantt-pair{padding:10px 0;border-bottom:1px solid var(--line-soft)}
+.gantt-pair:last-child{border-bottom:none}
+.gantt-pair-link{cursor:pointer;border-radius:8px;transition:background-color .15s ease;margin:0 -10px;padding-left:10px;padding-right:10px}
+.gantt-pair-link:hover, .gantt-pair-link:focus-visible{background:var(--surface-soft)}
+.gantt-pair-link:focus-visible{outline:1.5px solid var(--accent);outline-offset:2px}
+.gantt-pair-label{font-size:12.5px;font-weight:700;color:var(--ink);margin-bottom:6px;max-width:280px}
+.gantt-pair-cta{display:inline-block;margin-left:6px;font-size:11px;font-weight:700;color:var(--accent);white-space:nowrap}
+.gantt-pair-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.gantt-pair-row:last-child{margin-bottom:0}
+.gantt-pair-tag{flex:none;width:68px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-faint)}
+.gantt-pair-track{position:relative;flex:1;height:18px;background:
+  repeating-linear-gradient(to right,var(--line-soft) 0,var(--line-soft) 1px,transparent 1px,transparent 25%)}
+.gantt-legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;font-size:11.5px;color:var(--ink-soft)}
+.gantt-legend span{display:inline-flex;align-items:center;gap:6px}
+.gantt-legend i{width:16px;height:10px;border-radius:3px;display:inline-block}
+
+/* ---------- planilha de análise (custo item a item) ---------- */
+.atbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+.atbl{width:100%;border-collapse:collapse;min-width:760px;font-size:12px}
+.atbl thead th{background:var(--ink);color:#f3ead2;text-align:right;font-size:10.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.03em;padding:9px 10px;white-space:nowrap}
+.atbl thead th:first-child{text-align:left}
+:root[data-theme="dark"] .atbl thead th{color:#1c160c}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .atbl thead th{color:#1c160c} }
+.atbl tbody td{padding:8px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line-soft);color:var(--ink)}
+.atbl tbody td:first-child{text-align:left;font-weight:600;white-space:normal;min-width:160px}
+.atbl tbody tr:nth-child(even){background:var(--surface-soft)}
+.atbl tbody tr:last-child td{border-bottom:none}
+.atbl td.neg{color:var(--bad);font-weight:700;background:var(--bad-soft)}
+.atbl td.pos{color:var(--good);font-weight:700}
+.atbl td.dash{color:var(--ink-soft);font-weight:400}
+.atbl tfoot td{padding:9px 10px;text-align:right;font-weight:800;background:var(--ink);color:#f3ead2;border-top:2px solid var(--accent)}
+:root[data-theme="dark"] .atbl tfoot td{color:#1c160c}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .atbl tfoot td{color:#1c160c} }
+.atbl tfoot td:first-child{text-align:left}
+.atbl-more-row td{padding:10px;text-align:center;white-space:normal;background:var(--surface)}
+.atbl-more-btn{display:inline-block;padding:7px 16px;border-radius:999px;border:1px solid var(--accent-soft);background:var(--surface-soft);color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.atbl-more-btn:hover{background:var(--accent-soft);color:var(--ink)}
+.atbl-done{margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--surface-soft);border:1px solid var(--line)}
+.atbl-done-title{font-size:11px;font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.atbl-done-row{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 10px;padding:6px 0;border-top:1px solid var(--line-soft)}
+.atbl-done-row:first-of-type{border-top:none}
+.atbl-done-name{font-size:12.5px;font-weight:700;color:var(--ink)}
+.atbl-done-vals{display:flex;gap:14px;font-size:12px;font-weight:700;white-space:nowrap}
+.atbl-done-vals .pos{color:var(--good)}
+.atbl-done-vals .neg{color:var(--bad)}
+
+/* ---------- EAP completa (hierarquia de níveis) ---------- */
+.atbl.eap-full{min-width:900px}
+.atbl.eap-full tbody td:nth-child(2){text-align:left;white-space:normal;min-width:170px;font-weight:inherit}
+.atbl.eap-full tbody td:first-child{min-width:90px}
+.eap-l1 td{font-weight:800;background:var(--surface-soft)}
+.eap-l2 td{font-weight:700}
+.eap-l3 td{font-weight:500}
+.eap-l4 td{font-weight:400;color:var(--ink-soft)}
+.eap-l2 td:nth-child(2){padding-left:20px}
+.eap-l3 td:nth-child(2){padding-left:34px}
+.eap-l4 td:nth-child(2){padding-left:48px}
+
+/* ---------- memorial de acabamentos (projeção) ---------- */
+.mem-room{margin-bottom:14px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.mem-room:last-child{margin-bottom:0}
+.mem-room-head{background:linear-gradient(100deg,var(--ink),var(--accent-soft) 220%);color:#f3ead2;
+  padding:10px 14px;font-size:13px;font-weight:700;display:flex;justify-content:space-between;gap:10px}
+:root[data-theme="dark"] .mem-room-head{color:#1c160c}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]) .mem-room-head{color:#1c160c} }
+.mem-room-area{font-weight:600;opacity:.85;font-size:11.5px}
+.mem-item{padding:9px 14px;border-bottom:1px solid var(--line-soft);font-size:12.5px}
+.mem-item:last-child{border-bottom:none}
+.mem-item:nth-child(even){background:var(--surface-soft)}
+.mem-item .mi-item{font-weight:700;color:var(--ink);margin-bottom:2px}
+.mem-item .mi-desc{color:var(--ink-soft);line-height:1.5}
+.mem-item .mi-obs{color:var(--accent);font-size:11px;margin-top:3px}
+
+@media (max-width:480px){
+  header.top h1{font-size:22px}
+  .ring-value{font-size:24px}
+  .gantt-head{display:none}
+  .gantt-label{font-weight:700;padding:8px 0 2px}
+  .gantt-row{grid-template-columns:1fr;min-height:0}
+  .gantt-track{grid-column:1/2;min-width:420px}
+}
+</style>
+
+<header class="top">
+  <button class="theme-toggle" id="themeToggle" aria-label="Alternar modo claro/escuro" title="Alternar modo claro/escuro"></button>
+  <div class="top-inner">
+    <div class="top-eyebrow">AA Construção · Painel de Obra</div>
+    <h1>Clínica Sensi</h1>
+    <p class="sub">Sala 504 · Rio Mar Trade Center · Fortaleza, CE</p>
+    <div class="updated-pill"><span class="dot"></span>Atualizado em 06/10/2026 00:37</div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="tabs-inner" id="tabsInner">
+    <button class="tab-btn" data-tab="prazo" aria-selected="true">
+      Prazo
+    </button>
+    <button class="tab-btn" data-tab="custo" aria-selected="false">
+      Custo
+    </button>
+    <button class="tab-btn" data-tab="fotos" aria-selected="false">
+      Fotos
+    </button>
+    <button class="tab-btn" data-tab="passos" aria-selected="false">
+      Próximos passos
+    </button>
+  </div>
+</nav>
+
+<main class="wrap">
+  <section class="panel" id="panel-prazo"></section>
+  <section class="panel" id="panel-custo" hidden></section>
+  <section class="panel" id="panel-fotos" hidden></section>
+  <section class="panel" id="panel-passos" hidden></section>
+</main>
+
+<footer class="foot">Painel gerado a partir de Controle_Financeiro.xlsx, Acompanhamento_Obra.xlsx e Reembolso_ClinicaSensi · AA Construção</footer>
+
+<div class="lightbox" id="lightbox" hidden>
+  <div class="lb-controls"><div class="lb-close" id="lbClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M5 5l14 14M19 5L5 19"/></svg></div></div>
+  <div class="lb-nav prev" id="lbPrev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="18" height="18"><path d="M15 5l-7 7 7 7"/></svg></div>
+  <div class="lb-nav next" id="lbNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" width="18" height="18"><path d="M9 5l7 7-7 7"/></svg></div>
+  <div class="lb-img-wrap"><img id="lbImg" src="" alt=""></div>
+  <div class="lb-cap">
+    <div class="lb-label" id="lbLabel"></div>
+    <div class="lb-meta" id="lbMeta"></div>
+    <div class="lb-obs" id="lbObs"></div>
+  </div>
+</div>
+
+<script type="application/json" id="data-json">{"custo": {"custo_kpi": {"orc_total_eap": 271962.956678787, "realizado": 14638.59, "saldo": 257324.37, "pct_executado": 0.05382567603605481, "meta_projetada": 195408.714629185, "saldo_meta": 180770.12, "pct_meta": 0.07491267739915665}, "grupos_eap": [{"code": "001.01", "desc": "DESPESAS INDIRETAS", "orc": 24985.62, "real": 723.93, "saldo": 24261.69, "pct": 0.02897386576758952}, {"code": "001.02", "desc": "SERVIÇOS PRELIMINARES", "orc": 8695.55962076752, "real": 115.18, "saldo": 8580.38, "pct": 0.013245840983588535}, {"code": "001.03", "desc": "PAREDES E PAINEIS", "orc": 10849, "real": 3000, "saldo": 7849, "pct": 0.2765231818600793}, {"code": "001.04", "desc": "FORRO DE GESSO", "orc": 3420, "real": 0, "saldo": 3420, "pct": 0.0}, {"code": "001.05", "desc": "ESQUADRIAS", "orc": 6470, "real": 0, "saldo": 6470, "pct": 0.0}, {"code": "001.06", "desc": "REVESTIMENTOS", "orc": 24342.7362335651, "real": 4284.25, "saldo": 20058.49, "pct": 0.17599705961126264}, {"code": "001.07", "desc": "PINTURA", "orc": 18185.803546704, "real": 0, "saldo": 18185.8, "pct": 0.0}, {"code": "001.08", "desc": "PEDRAS, LOUÇAS E METAIS", "orc": 12515.07727775, "real": 0, "saldo": 12515.08, "pct": 0.0}, {"code": "001.09", "desc": "INSTALAÇÕES", "orc": 32986.26, "real": 6515.23, "saldo": 26471.03, "pct": 0.197513449539293}, {"code": "001.10", "desc": "LIMPEZA", "orc": 1498.34, "real": 0, "saldo": 1498.34, "pct": 0.0}, {"code": "002.01", "desc": "AMBIENTAÇÃO", "orc": 128014.56, "real": 0, "saldo": 128014.56, "pct": 0.0}], "centro_custo": [{"nome": "Instalações Frigorígenas", "qtd": 1, "valor": 4411.16}, {"nome": "Revestimento Cerâmico", "qtd": 9, "valor": 4284.25}, {"nome": "Divisória de Gesso", "qtd": 1, "valor": 3000.0}, {"nome": "Instalações Elétricas", "qtd": 3, "valor": 2104.07}, {"nome": "ART", "qtd": 2, "valor": 571.18}, {"nome": "Remoção de Resíduos", "qtd": 2, "valor": 115.18}, {"nome": "Despesas Indiretas / Canteiro", "qtd": 5, "valor": 152.75}], "insumos": [{"cls": "A", "code": "NV04", "desc": "Fornecimento de marcenaria", "orc": 48810.2, "meta": 20541, "ganho": 28269.2, "gasto": 0.0, "saldo": 20541.0, "pct": 0.0, "concluido": false}, {"cls": "A", "code": "NV03", "desc": "Fornecimento de móveis soltos", "orc": 34800, "meta": 20880, "ganho": 13920, "gasto": 0.0, "saldo": 20880.0, "pct": 0.0, "concluido": false}, {"cls": "A", "code": "NV05", "desc": "Fornecimento de eletrodomésticos", "orc": 24840, "meta": 17388, "ganho": 7452, "gasto": 0.0, "saldo": 17388.0, "pct": 0.0, "concluido": false}, {"cls": "A", "code": "NVI10453", "desc": "Iluminação", "orc": 19564.36, "meta": 15651.488, "ganho": 3912.872, "gasto": 0.0, "saldo": 15651.49, "pct": 0.0, "concluido": false}, {"cls": "A", "code": "I10243", "desc": "Orçamento específico de instalações elétricas", "orc": 16400, "meta": 13120, "ganho": 3280, "gasto": 2104.07, "saldo": 11015.93, "pct": 0.16037118902439026, "concluido": false}, {"cls": "A", "code": "I01001", "desc": "Engenheiro - faixa 1", "orc": 12600, "meta": 12600, "ganho": 0, "gasto": 0.0, "saldo": 12600.0, "pct": 0.0, "concluido": false}, {"cls": "A", "code": "INV10410", "desc": "Porcelanato portobello 120x120cm aeterna bianco", "orc": 11312.6811, "meta": 4848.2919, "ganho": 6464.3892, "gasto": 2685.92, "saldo": 2162.37, "pct": 0.5539930464995311, "concluido": true}, {"cls": "A", "code": "I10803", "desc": "Execução de textura efeito cimento queimado -terceirizado", "orc": 9353.7866, "meta": 5144.58263, "ganho": 4209.20397, "gasto": 0.0, "saldo": 5144.58, "pct": 0.0, "concluido": false}, {"cls": "A", "code": "I10247", "desc": "Orçamento específico de instalações frigorígenas", "orc": 8200, "meta": 8200, "ganho": 0, "gasto": 4411.16, "saldo": 3788.84, "pct": 0.5379463414634146, "concluido": false}, {"cls": "A", "code": "I10401", "desc": "Fornecimento e execução de drywall  e lã de vidro - terceirizado", "orc": 6349, "meta": 6349, "ganho": 0, "gasto": 3000.0, "saldo": 3349.0, "pct": 0.47251535674909434, "concluido": false}, {"cls": "A", "code": "INV10219", "desc": "Fornecimento e instalação de travertino romano bruto", "orc": 5848.2, "meta": 2100, "ganho": 3748.2, "gasto": 0.0, "saldo": 2100.0, "pct": 0.0, "concluido": false}, {"cls": "A", "code": "I10815", "desc": "Orçamento específico de instalações de combate a incêndio", "orc": 4871.16, "meta": 4871.16, "ganho": 0, "gasto": 0.0, "saldo": 4871.16, "pct": 0.0, "concluido": false}, {"cls": "A", "code": "I01002", "desc": "Encarregado de obras", "orc": 4800, "meta": 4800, "ganho": 0, "gasto": 0.0, "saldo": 4800.0, "pct": 0.0, "concluido": false}, {"cls": "A", "code": "NV06", "desc": "Fornecimento e execução de elementos decorativos em gesso", "orc": 4500, "meta": 4500, "ganho": 0, "gasto": 0.0, "saldo": 4500.0, "pct": 0.0, "concluido": false}, {"cls": "A", "code": "INVV10219", "desc": "Fornecimento e instalação de branco itaúnas", "orc": 4288.11, "meta": 3001.677, "ganho": 1286.433, "gasto": 0.0, "saldo": 3001.68, "pct": 0.0, "concluido": false}, {"cls": "B", "code": "I02011", "desc": "Servente", "orc": 4241.58899392426, "meta": 4241.58899392426, "ganho": 0, "gasto": 0.0, "saldo": 4241.59, "pct": 0.0, "concluido": false}, {"cls": "B", "code": "I10160", "desc": "Execução de pintura latex pva com duas demãos em paredes emassadas - internas - terceirizado", "orc": 3930.30825, "meta": 3930.30825, "ganho": 0, "gasto": 0.0, "saldo": 3930.31, "pct": 0.0, "concluido": false}, {"cls": "B", "code": "I02001", "desc": "Pedreiro - a", "orc": 3540.3849801936, "meta": 3540.3849801936, "ganho": 0, "gasto": 1070.0, "saldo": 2470.38, "pct": 0.3022270193738899, "concluido": false}, {"cls": "B", "code": "I10258", "desc": "Porta de madeira 70x210", "orc": 3450, "meta": 3450, "ganho": 0, "gasto": 0.0, "saldo": 3450.0, "pct": 0.0, "concluido": false}, {"cls": "B", "code": "I10121", "desc": "Fornecimento e execução de forro de gesso acartonado fge - terceirizado", "orc": 3420, "meta": 1026, "ganho": 2394, "gasto": 0.0, "saldo": 1026.0, "pct": 0.0, "concluido": false}, {"cls": "B", "code": "INV10413", "desc": "Papel de parede", "orc": 3359.301708, "meta": 1399.709045, "ganho": 1959.592663, "gasto": 0.0, "saldo": 1399.71, "pct": 0.0, "concluido": false}, {"cls": "B", "code": "I02003", "desc": "Pedreiro - c", "orc": 3238.121710656, "meta": 3238.121710656, "ganho": 0, "gasto": 0.0, "saldo": 3238.12, "pct": 0.0, "concluido": false}, {"cls": "B", "code": "I10244", "desc": "Orçamento específico de instalações rede e telefone", "orc": 2653.38, "meta": 2653.38, "ganho": 0, "gasto": 0.0, "saldo": 2653.38, "pct": 0.0, "concluido": false}, {"cls": "B", "code": "I10827", "desc": "Andaime", "orc": 2400, "meta": 2400, "ganho": 0, "gasto": 0.0, "saldo": 2400.0, "pct": 0.0, "concluido": false}, {"cls": "B", "code": "I10804", "desc": "Textura efeito cimento queimado", "orc": 2389.331249104, "meta": 1194.665624552, "ganho": 1194.665624552, "gasto": 0.0, "saldo": 1194.67, "pct": 0.0, "concluido": false}, {"cls": "B", "code": "I10257", "desc": "Porta de madeira 60x210", "orc": 2300, "meta": 2300, "ganho": 0, "gasto": 0.0, "saldo": 2300.0, "pct": 0.0, "concluido": false}, {"cls": "B", "code": "I10132", "desc": "Remoção de resíduos misturado - terceirizado", "orc": 2205, "meta": 2205, "ganho": 0, "gasto": 115.18, "saldo": 2089.82, "pct": 0.0522358276643991, "concluido": false}, {"cls": "B", "code": "I10193", "desc": "Mobilização e desmobilização obra", "orc": 2000, "meta": 2000, "ganho": 0, "gasto": 0.0, "saldo": 2000.0, "pct": 0.0, "concluido": false}, {"cls": "B", "code": "NV02", "desc": "Custos com elaboração de projetos complementares", "orc": 2000, "meta": 2000, "ganho": 0, "gasto": 0.0, "saldo": 2000.0, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10488", "desc": "Rodapé metálico", "orc": 1930.76, "meta": 1930.76, "ganho": 0, "gasto": 0.0, "saldo": 1930.76, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10851", "desc": "Execução de limpeza final de obra - terceirizado", "orc": 1498.34, "meta": 1498.34, "ganho": 0, "gasto": 0.0, "saldo": 1498.34, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10008", "desc": "Argamassa-cola ac-iii flexível cinza", "orc": 1174.42304, "meta": 1174.42304, "ganho": 0, "gasto": 370.0, "saldo": 804.42, "pct": 0.3150483151284226, "concluido": false}, {"cls": "C", "code": "NV01", "desc": "Custos com canteiro de obras", "orc": 985.62, "meta": 985.62, "ganho": 0, "gasto": 152.75, "saldo": 832.87, "pct": 0.15497859215519166, "concluido": false}, {"cls": "C", "code": "I10852", "desc": "Salva piso", "orc": 982.775904, "meta": 982.775904, "ganho": 0, "gasto": 0.0, "saldo": 982.78, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "INV10418", "desc": "Tinta acrílica branco neve", "orc": 338.283, "meta": 954.348928, "ganho": -616.065928, "gasto": 0.0, "saldo": 954.35, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10245", "desc": "Orçamento específico de instalações hidrossanitárias", "orc": 861.72, "meta": 861.72, "ganho": 0, "gasto": 0.0, "saldo": 861.72, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10101", "desc": "Fornecimento de cuba de sobrepor retangular deca l840", "orc": 854.9, "meta": 854.9, "ganho": 0, "gasto": 0.0, "saldo": 854.9, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "INV10415", "desc": "Massa corrida", "orc": 410.5422426, "meta": 733.9768548, "ganho": -323.4346122, "gasto": 0.0, "saldo": 733.98, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10161", "desc": "Fornecimento e execução de pintura latex pva com duas demãos em tetos - terceirizado", "orc": 721.083, "meta": 721.083, "ganho": 0, "gasto": 0.0, "saldo": 721.08, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "IN10151", "desc": "Fornecimento e montagem de esquadria fixa", "orc": 720, "meta": 720, "ganho": 0, "gasto": 0.0, "saldo": 720.0, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "INV10417", "desc": "Selador", "orc": 253.71225, "meta": 715.761696, "ganho": -462.049446, "gasto": 0.0, "saldo": 715.76, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "NV07", "desc": "Fornecimento e execução de  emassamento - internas", "orc": 669.426065, "meta": 669.426065, "ganho": 0, "gasto": 0.0, "saldo": 669.43, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10224", "desc": "Torneira deca 1198.c33", "orc": 471.9, "meta": 471.9, "ganho": 0, "gasto": 0.0, "saldo": 471.9, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10198", "desc": "Cuba de aço inox dupla 70x34cm ref. 94061/407 - tramontina", "orc": 449, "meta": 449, "ganho": 0, "gasto": 0.0, "saldo": 449.0, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I02006", "desc": "Pintor", "orc": 385.7099101317, "meta": 385.7099101317, "ganho": 0, "gasto": 0.0, "saldo": 385.71, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "INV10416", "desc": "Lixa para parede", "orc": 164.3650071, "meta": 299.12942885, "ganho": -134.76442175, "gasto": 0.0, "saldo": 299.13, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10011", "desc": "Rodapé poliest 10cm branco frisado", "orc": 229.54, "meta": 229.54, "ganho": 0, "gasto": 0.0, "saldo": 229.54, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10573", "desc": "Torneira deca de bancada bica alta linha link 1196 c", "orc": 225, "meta": 225, "ganho": 0, "gasto": 0.0, "saldo": 225.0, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10235", "desc": "Art", "orc": 200, "meta": 200, "ganho": 0, "gasto": 571.18, "saldo": -371.18, "pct": 2.8558999999999997, "concluido": false}, {"cls": "C", "code": "INV10414", "desc": "Cola para papel de parede", "orc": 131.4509364, "meta": 131.4509364, "ganho": 0, "gasto": 0.0, "saldo": 131.45, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10411", "desc": "Torneira de mesa para cozinha - 1167.c35", "orc": 128.54, "meta": 128.54, "ganho": 0, "gasto": 0.0, "saldo": 128.54, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10182", "desc": "Clipe para nivelador de piso 2mm", "orc": 107.039484916, "meta": 107.039484916, "ganho": 0, "gasto": 0.0, "saldo": 107.04, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I02013", "desc": "Auxiliar de bombeiro", "orc": 93.09727775, "meta": 93.09727775, "ganho": 0, "gasto": 0.0, "saldo": 93.1, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10102", "desc": "Fita gomada", "orc": 74.45272, "meta": 74.45272, "ganho": 0, "gasto": 0.0, "saldo": 74.45, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10088", "desc": "Sifão para cozinha cromado - fabrimar", "orc": 53.37, "meta": 53.37, "ganho": 0, "gasto": 0.0, "saldo": 53.37, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10246", "desc": "Engate flexível cromado", "orc": 39.98, "meta": 39.98, "ganho": 0, "gasto": 0.0, "saldo": 39.98, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10717", "desc": "Cola para rodapés e molduras 420g axton", "orc": 38.0190476190476, "meta": 38.0190476190476, "ganho": 0, "gasto": 0.0, "saldo": 38.02, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10087", "desc": "Sifão para lavatório cromado", "orc": 37.71, "meta": 37.71, "ganho": 0, "gasto": 0.0, "saldo": 37.71, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10012", "desc": "Rejunte extra flex porcelanato/granito/mármore e ardosia colorido", "orc": 29.5265985, "meta": 29.5265985, "ganho": 0, "gasto": 58.34, "saldo": -28.81, "pct": 1.9758456091716763, "concluido": false}, {"cls": "C", "code": "I10106", "desc": "Fita veda rosca 18mmx25m", "orc": 13, "meta": 13, "ganho": 0, "gasto": 0.0, "saldo": 13.0, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10086", "desc": "Válvula para lavatório 1\" em latão cromado", "orc": 12.27, "meta": 12.27, "ganho": 0, "gasto": 0.0, "saldo": 12.27, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10010", "desc": "Rejunte extra flex cerâmica internos e externos colorido", "orc": 6.986, "meta": 6.986, "ganho": 0, "gasto": 0.0, "saldo": 6.99, "pct": 0.0, "concluido": false}, {"cls": "C", "code": "I10184", "desc": "Cunha niveladora de piso", "orc": 5.499602892, "meta": 5.499602892, "ganho": 0, "gasto": 0.0, "saldo": 5.5, "pct": 0.0, "concluido": false}], "lancamentos": [{"n": 1, "data": "2026-09-23T10:38:29", "cc": "Instalações Frigorígenas", "eap": "001.09.04.01", "desc": "Aquisição de tubos e conexões em cobre, esponjosos e itens elétricos", "favorecido": "Alexandre Araujo da Silva", "tipo": "Pix", "valor": 4411.16, "insumo": "I10247", "excluido": false, "comprovante": "/_blob/f144bcab44abca6b69bb72d4875c20ae"}, {"n": 2, "data": "2026-09-21T16:51:32", "cc": "Revestimento Cerâmico", "eap": "001.06.01.02", "desc": "Pagamento à Cerâmica Cerbras (revestimento cerâmico)", "favorecido": "Cerâmica Cerbras", "tipo": "Pix", "valor": 2660.36, "insumo": "INV10410", "excluido": false, "comprovante": "/_blob/c356b48df984682f666f6cbc778281f2"}, {"n": 3, "data": "2026-10-02T13:18:00", "cc": "Divisória de Gesso", "eap": "001.03.01.01", "desc": "Despesa com execução de divisórias em drywall", "favorecido": "Marcos Paulo de Araujo Sousa", "tipo": "Pix", "valor": 3000, "insumo": "I10401", "excluido": false, "comprovante": "/_blob/5f554cfc78b0d7414b6bcdf3889e6d3f"}, {"n": 4, "data": "2026-10-01T13:37:00", "cc": "Instalações Elétricas", "eap": "001.09.01.01", "desc": "Despesa com material/execução de instalações elétricas", "favorecido": "Ramacon Material para Construção", "tipo": "Pix", "valor": 1750.1, "insumo": "I10243", "excluido": false, "comprovante": "/_blob/2806c4148801ccbae076c7ce81b5c530"}, {"n": 5, "data": "2026-09-23T13:36:00", "cc": "Revestimento Cerâmico", "eap": "001.06.01.01", "desc": "Argamassa cola para assentamento de porcelanato", "favorecido": "Rejuntamix", "tipo": "Reembolso", "valor": 1665, "insumo": "I10008", "excluido": true, "motivo_exclusao": "Comprovante em verificação: o valor integral (R$ 1.665,00, Rejuntamix) pode não corresponder apenas a este insumo/etapa. Excluído do realizado por ora — revisar e confirmar antes do fechamento total.", "comprovante": "/_blob/e74ca94fd63cc075598bc57b64b6aad1"}, {"n": 6, "data": "2026-09-21T10:01:00", "cc": "Remoção de Resíduos", "eap": "001.02.01.05", "desc": "Aquisição de sacos para remoção de entulho", "favorecido": "Marcia Maria de Lima Viana Ribeiro", "tipo": "Reembolso", "valor": 100, "insumo": "I10132", "excluido": false, "comprovante": "/_blob/6b88027baadca0a2d947a9089f30f267"}, {"n": 7, "data": "2026-09-22T06:56:00", "cc": "Revestimento Cerâmico", "eap": "001.06.01.02", "desc": "Pagamento de imposto para aquisição do item", "favorecido": "Cerâmica Cerbras", "tipo": "Reembolso", "valor": 25.56, "insumo": "INV10410", "excluido": false, "comprovante": "/_blob/06b73bb700b8ede740403a5cf1bf40bd"}, {"n": 8, "data": "2026-09-25T14:18:00", "cc": "Instalações Elétricas", "eap": "001.09.01.01", "desc": "Compra de material elétrico", "favorecido": "Ramacon Material para Construção", "tipo": "Reembolso", "valor": 329.4, "insumo": "I10243", "excluido": false, "comprovante": "/_blob/127a156b15be2b064222cffa9a1a7851"}, {"n": 9, "data": "2026-09-28T12:49:00", "cc": "Revestimento Cerâmico", "eap": "001.06.01.01", "desc": "Argamassa polimérica para impermeabilização (Vedatop 1000 Bicomponente 18kg)", "favorecido": "MB Comércio de Materiais de Construção LTDA", "tipo": "Reembolso", "valor": 99.99, "insumo": null, "excluido": false, "comprovante": "/_blob/7ef94b115ac2656181f50af491ca1cbc"}, {"n": 10, "data": "2026-10-01T19:31:00", "cc": "Revestimento Cerâmico", "eap": "001.06.01.03", "desc": "Compra de rejunte e fibra para aplicação de rejunte", "favorecido": "MB Comércio de Materiais de Construção LTDA", "tipo": "Reembolso", "valor": 54.14, "insumo": "I10012", "excluido": false, "comprovante": "/_blob/2367b2ff268db0722fea15bfc6b0e623"}, {"n": 11, "data": "2026-10-01T19:34:00", "cc": "Revestimento Cerâmico", "eap": "001.06.01.03", "desc": "Compra de espátula para aplicação de rejunte", "favorecido": "MB Comércio de Materiais de Construção LTDA", "tipo": "Reembolso", "valor": 4.2, "insumo": "I10012", "excluido": false, "comprovante": "/_blob/502b0da43f906f6cb2b30b344cc7aee1"}, {"n": 12, "data": "2026-09-18T15:02:00", "cc": "ART", "eap": "001.01.01.01", "desc": "Elaboração de ART", "favorecido": "CREA-CE · Boleto", "tipo": "Reembolso", "valor": 285.59, "insumo": "I10235", "excluido": false, "comprovante": "/_blob/c4ab1d86226056115468e8a0a56535f7"}, {"n": 13, "data": "2026-09-16T21:47:00", "cc": "ART", "eap": "001.01.01.01", "desc": "Elaboração de ART", "favorecido": "CREA-CE · Boleto", "tipo": "Reembolso", "valor": 285.59, "insumo": "I10235", "excluido": false, "comprovante": "/_blob/3c534338e29d50c77620fc03a2296107"}, {"n": 14, "data": "2026-09-26T18:41:00", "cc": "Revestimento Cerâmico", "eap": "001.06.01.01", "desc": "Pagamento de mão de obra", "favorecido": "Antônio Eugênio Silva do Nascimento", "tipo": "Reembolso", "valor": 520, "insumo": "I02001", "excluido": false, "comprovante": "/_blob/842555d2e89299d07ee1165e357fac1e"}, {"n": 15, "data": "2026-09-29T08:38:00", "cc": "Revestimento Cerâmico", "eap": "001.06.01.01", "desc": "Mão de obra para execução de revestimento em porcelanato", "favorecido": "Antônio Eugênio Silva do Nascimento", "tipo": "Reembolso", "valor": 150, "insumo": "I02001", "excluido": false, "comprovante": "/_blob/507ce71a1a4b5db0cb1e211c71c0dad4"}, {"n": 16, "data": "2026-10-03T08:50:00", "cc": "Revestimento Cerâmico", "eap": "001.06.01.01", "desc": "Mão de obra para execução de piso", "favorecido": "Antônio Eugênio Silva do Nascimento", "tipo": "Reembolso", "valor": 400, "insumo": "I02001", "excluido": false, "comprovante": "/_blob/7e3e0a461546915bf79343b701c9a527"}, {"n": 17, "data": "2026-09-23T23:54:00", "cc": "Despesas Indiretas / Canteiro", "eap": "001.01.01.02", "desc": "Retorno do pedreiro (Uber Moto)", "favorecido": "Uber Moto", "tipo": "Reembolso", "valor": 25.9, "insumo": "NV01", "excluido": false, "comprovante": "/_blob/bb5eecbef7e91db4f74ce45eb754949c"}, {"n": 18, "data": "2026-09-22T21:37:00", "cc": "Despesas Indiretas / Canteiro", "eap": "001.01.01.02", "desc": "Retorno do pedreiro (Uber Moto)", "favorecido": "Uber Moto", "tipo": "Reembolso", "valor": 8.72, "insumo": "NV01", "excluido": false, "comprovante": "/_blob/4e620e1a470c1de0df5098d0b9ceb804"}, {"n": 19, "data": "2026-09-24T23:09:00", "cc": "Despesas Indiretas / Canteiro", "eap": "001.01.01.02", "desc": "Retorno do pedreiro (Uber Moto)", "favorecido": "Uber Moto", "tipo": "Reembolso", "valor": 4.72, "insumo": "NV01", "excluido": false, "comprovante": "/_blob/e0243a74f65cb854b90f8a8c3b124b70"}, {"n": 20, "data": "2026-09-25T16:16:00", "cc": "Instalações Elétricas", "eap": "001.09.01.01", "desc": "Retirada de itens de instalações elétricas (Uber Envios Moto)", "favorecido": "Uber Envios Moto", "tipo": "Reembolso", "valor": 24.57, "insumo": "I10243", "excluido": false, "comprovante": "/_blob/6c5b95b61a2ab4820469f47fd0464987"}, {"n": 21, "data": "2026-09-21T12:26:00", "cc": "Remoção de Resíduos", "eap": "001.02.01.05", "desc": "Coleta de sacos para remoção de entulho (Uber Envios Moto)", "favorecido": "Uber Envios Moto", "tipo": "Reembolso", "valor": 15.18, "insumo": "I10132", "excluido": false, "comprovante": "/_blob/99a3a8a6972b92eea0a9db8fa2db3efa"}, {"n": 22, "data": "2026-09-30T19:22:00", "cc": "Revestimento Cerâmico", "eap": "001.06.01.01", "desc": "Frete para coleta de argamassa colante e porcelanato", "favorecido": "Jerônimo Brito Gomes", "tipo": "Reembolso", "valor": 370, "insumo": "I10008", "excluido": false, "comprovante": "/_blob/f4266bcf2c7a3996208fd04c692af337"}, {"n": 23, "data": "2026-09-25T23:53:00", "cc": "Despesas Indiretas / Canteiro", "eap": "001.01.01.02", "desc": "Lanches equipe operacional", "favorecido": "Tudo Acaba em Pizza", "tipo": "Reembolso", "valor": 93.43, "insumo": "NV01", "excluido": false, "comprovante": "/_blob/c13cf1b43064eb9d465537ff47c7ca97"}, {"n": 24, "data": "2026-09-30T23:23:00", "cc": "Despesas Indiretas / Canteiro", "eap": "001.01.01.02", "desc": "Lanches equipe operacional", "favorecido": "Seu Chefe Hamburgueria", "tipo": "Reembolso", "valor": 19.98, "insumo": "NV01", "excluido": false, "comprovante": "/_blob/783e462645514f5a8ab5b126f723bc3f"}], "eap_completo": [{"code": "001", "nivel": 1, "desc": "OBRA", "und": null, "quant": null, "preco_unit": null, "orc": 143948.396678787, "real": 16303.59, "saldo": 127644.806678787, "pct": 0.113259962432097}, {"code": "001.01", "nivel": 2, "desc": "DESPESAS INDIRETAS", "und": null, "quant": null, "preco_unit": null, "orc": 24985.62, "real": 723.93, "saldo": 24261.69, "pct": 0.0289738657675895}, {"code": "001.01.01", "nivel": 3, "desc": "DESPESAS MENSAIS", "und": null, "quant": null, "preco_unit": null, "orc": 3185.62, "real": 723.93, "saldo": 2461.69, "pct": 0.227249326661686}, {"code": "001.01.01.01", "nivel": 4, "desc": "ART", "und": "VB", "quant": 1, "preco_unit": 200, "orc": 200, "real": 571.18, "saldo": -371.18, "pct": 2.8559}, {"code": "001.01.01.02", "nivel": 4, "desc": "CUSTOS COM CANTEIRO DE OBRAS", "und": "OE", "quant": 1, "preco_unit": 985.62, "orc": 985.62, "real": 152.75, "saldo": 832.87, "pct": 0.154978592155192}, {"code": "001.01.01.03", "nivel": 4, "desc": "MOBILIZAÇÃO, DESMOBILIZAÇÃO E FRETES DA OBRA", "und": "VB", "quant": 1, "preco_unit": 2000, "orc": 2000, "real": 0, "saldo": 2000, "pct": 0}, {"code": "001.01.02", "nivel": 3, "desc": "EQUIPE ADMININSTRATIVA", "und": null, "quant": null, "preco_unit": null, "orc": 17400, "real": 0, "saldo": 17400, "pct": 0}, {"code": "001.01.02.01", "nivel": 4, "desc": "EQUIPE ADMINISTRATIVA", "und": "OE", "quant": 3, "preco_unit": 5800, "orc": 17400, "real": 0, "saldo": 17400, "pct": 0}, {"code": "001.01.03", "nivel": 3, "desc": "LOCAÇÃO DE EQUIPAMENTOS", "und": null, "quant": null, "preco_unit": null, "orc": 2400, "real": 0, "saldo": 2400, "pct": 0}, {"code": "001.01.03.01", "nivel": 4, "desc": "LOCAÇÃO DE EQUIPAMENTOS E MÁQUINA", "und": "OE", "quant": 1, "preco_unit": 2400, "orc": 2400, "real": 0, "saldo": 2400, "pct": 0}, {"code": "001.01.04", "nivel": 3, "desc": "ELABORAÇÃO DE PROJETOS", "und": null, "quant": null, "preco_unit": null, "orc": 2000, "real": 0, "saldo": 2000, "pct": 0}, {"code": "001.01.04.01", "nivel": 4, "desc": "CUSTOS COM ELABORAÇÃO DE PROJETOS COMPLEMENTARES", "und": "VB", "quant": 1, "preco_unit": 2000, "orc": 2000, "real": 0, "saldo": 2000, "pct": 0}, {"code": "001.02", "nivel": 2, "desc": "SERVIÇOS PRELIMINARES", "und": null, "quant": null, "preco_unit": null, "orc": 8695.55962076752, "real": 115.18, "saldo": 8580.37962076752, "pct": 0.0132458409835885}, {"code": "001.02.01", "nivel": 3, "desc": "SERVIÇOS PRELIMINARES", "und": null, "quant": null, "preco_unit": null, "orc": 8695.55962076752, "real": 115.18, "saldo": 8580.37962076752, "pct": 0.0132458409835885}, {"code": "001.02.01.01", "nivel": 4, "desc": "DEMOLIÇÃO E TRANSPORTE DE PISO CERÂMICO SOBRE CONTRAPISO", "und": "M2", "quant": 39.4259, "preco_unit": 71.44632, "orc": 2816.835467688, "real": 0, "saldo": 2816.835467688, "pct": 0}, {"code": "001.02.01.02", "nivel": 4, "desc": "EXECUÇÃO DE LIXAMENTO E LIMPEZA DE CONTRAPISO AUTONIVELANTE", "und": "M2", "quant": 39.4259, "preco_unit": 1.9848528, "orc": 78.25460800752, "real": 0, "saldo": 78.25460800752, "pct": 0}, {"code": "001.02.01.03", "nivel": 4, "desc": "DEMOLIÇÃO E TRANSPORTE DE FORRO DE GESSO ALT. ATÉ 3,00M", "und": "M2", "quant": 39.4259, "preco_unit": 49.16736, "orc": 1938.467418624, "real": 0, "saldo": 1938.467418624, "pct": 0}, {"code": "001.02.01.04", "nivel": 4, "desc": "REMOÇÃO DE BANCADAS", "und": "M2", "quant": 5, "preco_unit": 44.55792, "orc": 222.7896, "real": 0, "saldo": 222.7896, "pct": 0}, {"code": "001.02.01.05", "nivel": 4, "desc": "REMOÇÃO DE RESÍDUOS", "und": "M3", "quant": 18, "preco_unit": 122.5, "orc": 2205, "real": 115.18, "saldo": 2089.82, "pct": 0.0522358276643991}, {"code": "001.02.01.06", "nivel": 4, "desc": "PROTEÇÃO DE PISO COM SALVA PISO", "und": "M2", "quant": 93.0659, "preco_unit": 15.41072, "orc": 1434.212526448, "real": 0, "saldo": 1434.212526448, "pct": 0}, {"code": "001.03", "nivel": 2, "desc": "PAREDES E PAINEIS", "und": null, "quant": null, "preco_unit": null, "orc": 10849, "real": 3000, "saldo": 7849, "pct": 0.276523181860079}, {"code": "001.03.01", "nivel": 3, "desc": "DIVISÓRIA DE GESSO", "und": null, "quant": null, "preco_unit": null, "orc": 10849, "real": 3000, "saldo": 7849, "pct": 0.276523181860079}, {"code": "001.03.01.01", "nivel": 4, "desc": "FORNECIMENTO E EXECUÇÃO DE DRYWALL  E LÃ DE VIDRO - TERCEIRIZADO", "und": "M2", "quant": 39.6462, "preco_unit": 160.141451135292, "orc": 6349, "real": 3000, "saldo": 3349, "pct": 0.472515356749094}, {"code": "001.03.01.02", "nivel": 4, "desc": "FORNECIMENTO E EXECUÇÃO DE ELEMENTOS DECORATIVOS EM GESSO", "und": "VB", "quant": 1, "preco_unit": 4500, "orc": 4500, "real": 0, "saldo": 4500, "pct": 0}, {"code": "001.04", "nivel": 2, "desc": "FORRO DE GESSO", "und": null, "quant": null, "preco_unit": null, "orc": 3420, "real": 0, "saldo": 3420, "pct": 0}, {"code": "001.04.01", "nivel": 3, "desc": "FORRO DE GESSO", "und": null, "quant": null, "preco_unit": null, "orc": 3420, "real": 0, "saldo": 3420, "pct": 0}, {"code": "001.04.01.01", "nivel": 4, "desc": "FORNECIMENTO E EXECUÇÃO DE FORRO DE GESSO ACARTONADO FGE", "und": "M2", "quant": 37.6582, "preco_unit": 90.8168738813857, "orc": 3420, "real": 0, "saldo": 3420, "pct": 0}, {"code": "001.05", "nivel": 2, "desc": "ESQUADRIAS", "und": null, "quant": null, "preco_unit": null, "orc": 6470, "real": 0, "saldo": 6470, "pct": 0}, {"code": "001.05.01", "nivel": 3, "desc": "ESQUADRIAS DE ALUMÍNIO E VIDRO", "und": null, "quant": null, "preco_unit": null, "orc": 720, "real": 0, "saldo": 720, "pct": 0}, {"code": "001.05.01.01", "nivel": 4, "desc": "FORNECIMENTO E MONTAGEM DE ESQUADRIA FIXA", "und": "M2", "quant": 0.9, "preco_unit": 800, "orc": 720, "real": 0, "saldo": 720, "pct": 0}, {"code": "001.05.02", "nivel": 3, "desc": "ESQUADRIAS DE MADEIRA", "und": null, "quant": null, "preco_unit": null, "orc": 5750, "real": 0, "saldo": 5750, "pct": 0}, {"code": "001.05.02.01", "nivel": 4, "desc": "FORNECIMENTO E MONTAGEM DE PORTA DE MADEIRA 70X210 (PARANÁ) - INCLUSO FERRAGENS (ABRIR)", "und": "UND", "quant": 3, "preco_unit": 1150, "orc": 3450, "real": 0, "saldo": 3450, "pct": 0}, {"code": "001.05.02.02", "nivel": 4, "desc": "FORNECIMENTO E MONTAGEM DE PORTA DE MADEIRA 60X210 (PARANÁ) - INCLUSO FERRAGENS (CORRER)", "und": "UND", "quant": 2, "preco_unit": 1150, "orc": 2300, "real": 0, "saldo": 2300, "pct": 0}, {"code": "001.06", "nivel": 2, "desc": "REVESTIMENTOS", "und": null, "quant": null, "preco_unit": null, "orc": 24342.7362335651, "real": 5949.25, "saldo": 18393.4862335651, "pct": 0.244395286664482}, {"code": "001.06.01", "nivel": 3, "desc": "REVESTIMENTO DE PISO", "und": null, "quant": null, "preco_unit": null, "orc": 14550.9198715195, "real": 5949.25, "saldo": 8601.66987151953, "pct": 0.408857312976099}, {"code": "001.06.01.01", "nivel": 4, "desc": "ASSENTAMENTO DE PORCELANATO 120X120CM COM AC-III E NIVELADORES - PISO", "und": "M2", "quant": 39.4259, "preco_unit": 121.81332, "orc": 4802.599772988, "real": 3204.99, "saldo": 1597.609772988, "pct": 0.66734480312649}, {"code": "001.06.01.02", "nivel": 4, "desc": "FORNECIMENTO PORCELANATO PORTOBELLO 90X90CM AETERNA BIANCO", "und": "M2", "quant": 39.4259, "preco_unit": 241.5, "orc": 9521.35485, "real": 2685.92, "saldo": 6835.43485, "pct": 0.282094307198308}, {"code": "001.06.01.03", "nivel": 4, "desc": "EXECUÇÃO DE REJUNTAMENTO EM PORCELANATO 120X120CM", "und": "M2", "quant": 39.4259, "preco_unit": 5.75675504, "orc": 226.965248531536, "real": 58.34, "saldo": 168.625248531536, "pct": 0.257043756158529}, {"code": "001.06.02", "nivel": 3, "desc": "REVESTIMENTO DE PAREDE", "und": null, "quant": null, "preco_unit": null, "orc": 9791.81636204555, "real": 0, "saldo": 9791.81636204555, "pct": 0}, {"code": "001.06.02.01", "nivel": 4, "desc": "APLICAÇÃO DE PAPEL DE PAREDE, INCLUSO PREPARO DE SUPERFÍCIE E COLA - PAREDE", "und": "M2", "quant": 24.342766, "preco_unit": 166.15835, "orc": 4044.7538329961, "real": 0, "saldo": 4044.7538329961, "pct": 0}, {"code": "001.06.02.02", "nivel": 4, "desc": "ASSENTAMENTO DE PORCELANATO 120X120CM COM AC-III E NIVELADORES - PAREDE", "und": "M2", "quant": 6.45, "preco_unit": 121.81332, "orc": 785.695914, "real": 0, "saldo": 785.695914, "pct": 0}, {"code": "001.06.02.03", "nivel": 4, "desc": "FORNECIMENTO PORCELANATO PORTOBELLO 90X90CM AETERNA BIANCO", "und": "M2", "quant": 7.4175, "preco_unit": 241.5, "orc": 1791.32625, "real": 0, "saldo": 1791.32625, "pct": 0}, {"code": "001.06.02.04", "nivel": 4, "desc": "EXECUÇÃO DE REJUNTAMENTO EM PORCELANATO 120X120CM", "und": "M2", "quant": 4.975, "preco_unit": 5.75675504, "orc": 28.639856324, "real": 0, "saldo": 28.639856324, "pct": 0}, {"code": "001.06.02.05", "nivel": 4, "desc": "FORNECIMENTO E EXECUÇÃO DE RODAPÉ METÁLICO", "und": "M", "quant": 41.08, "preco_unit": 65.33324444, "orc": 2683.8896815952, "real": 0, "saldo": 2683.8896815952, "pct": 0}, {"code": "001.06.02.06", "nivel": 4, "desc": "FORNECIMENTO E EXECUÇÃO DE RODAPÉ SANTA LUZIA COM COLA E REJUNTE", "und": "M", "quant": 9.98, "preco_unit": 45.8427682495238, "orc": 457.510827130248, "real": 0, "saldo": 457.510827130248, "pct": 0}, {"code": "001.07", "nivel": 2, "desc": "PINTURA", "und": null, "quant": null, "preco_unit": null, "orc": 18185.803546704, "real": 0, "saldo": 18185.803546704, "pct": 0}, {"code": "001.07.01", "nivel": 3, "desc": "PINTURA DE PAREDE", "und": null, "quant": null, "preco_unit": null, "orc": 13865.792837204, "real": 0, "saldo": 13865.792837204, "pct": 0}, {"code": "001.07.01.01", "nivel": 4, "desc": "FORNECIMENTO E EXECUÇÃO DE TEXTURA EFEITO CIMENTO QUEIMADO", "und": "M2", "quant": 66.552366, "preco_unit": 128.519, "orc": 8553.243525954, "real": 0, "saldo": 8553.243525954, "pct": 0}, {"code": "001.07.01.02", "nivel": 4, "desc": "FORNECIMENTO E EXECUÇÃO DE PINTURA LATEX PVA COM DUAS DEMÃOS EM PAREDES EMASSADAS - INTERNAS", "und": "M2", "quant": 71.46015, "preco_unit": 64.975, "orc": 4643.12324625, "real": 0, "saldo": 4643.12324625, "pct": 0}, {"code": "001.07.01.03", "nivel": 4, "desc": "FORNECIMENTO E EXECUÇÃO DE  EMASSAMENTO - INTERNAS", "und": "M2", "quant": 24.342766, "preco_unit": 27.5, "orc": 669.426065, "real": 0, "saldo": 669.426065, "pct": 0}, {"code": "001.07.02", "nivel": 3, "desc": "PINTURA DE TETO", "und": null, "quant": null, "preco_unit": null, "orc": 4320.0107095, "real": 0, "saldo": 4320.0107095, "pct": 0}, {"code": "001.07.02.01", "nivel": 4, "desc": "FORNECIMENTO E EXECUÇÃO DE TEXTURA EFEITO CIMENTO QUEIMADO", "und": "M2", "quant": 26.9855, "preco_unit": 128.519, "orc": 3468.1494745, "real": 0, "saldo": 3468.1494745, "pct": 0}, {"code": "001.07.02.02", "nivel": 4, "desc": "FORNECIMENTO E EXECUÇÃO DE PINTURA LATEX PVA COM DUAS DEMÃOS EM TETOS", "und": "M2", "quant": 13.1106, "preco_unit": 64.975, "orc": 851.861235, "real": 0, "saldo": 851.861235, "pct": 0}, {"code": "001.08", "nivel": 2, "desc": "PEDRAS, LOUÇAS E METAIS", "und": null, "quant": null, "preco_unit": null, "orc": 12515.07727775, "real": 0, "saldo": 12515.07727775, "pct": 0}, {"code": "001.08.01", "nivel": 3, "desc": "PEDRAS", "und": null, "quant": null, "preco_unit": null, "orc": 10136.31, "real": 0, "saldo": 10136.31, "pct": 0}, {"code": "001.08.01.01", "nivel": 4, "desc": "FORNECIMENTO E ASSENTAMENTO DE BANCADA E TAMPO EM BRANCO ITAÚNAS", "und": "M2", "quant": 2.749, "preco_unit": 1559.87995634776, "orc": 4288.11, "real": 0, "saldo": 4288.11, "pct": 0}, {"code": "001.08.01.02", "nivel": 4, "desc": "FORNECIMENTO E ASSENTAMENTO DE TAMPO EM TRAVERTINO ROMANO BRUTO", "und": "M2", "quant": 2.1, "preco_unit": 2784.85714285714, "orc": 5848.2, "real": 0, "saldo": 5848.2, "pct": 0}, {"code": "001.08.02", "nivel": 3, "desc": "LOUÇAS", "und": null, "quant": null, "preco_unit": null, "orc": 930.6922, "real": 0, "saldo": 930.6922, "pct": 0}, {"code": "001.08.02.01", "nivel": 4, "desc": "FORNECIMENTO DE CUBA DE SOBREPOR RETANGULAR DECA L840", "und": "UND", "quant": 1, "preco_unit": 854.9, "orc": 854.9, "real": 0, "saldo": 854.9, "pct": 0}, {"code": "001.08.02.02", "nivel": 4, "desc": "INSTALAÇÃO DE ACESSÓRIOS PARA CUBA DE APOIO", "und": "UND", "quant": 1, "preco_unit": 75.7922, "orc": 75.7922, "real": 0, "saldo": 75.7922, "pct": 0}, {"code": "001.08.03", "nivel": 3, "desc": "METAIS", "und": null, "quant": null, "preco_unit": null, "orc": 1448.07507775, "real": 0, "saldo": 1448.07507775, "pct": 0}, {"code": "001.08.03.01", "nivel": 4, "desc": "FORNECIMENTO DE TORNEIRA DECA 1198.C33 POLO", "und": "UND", "quant": 1, "preco_unit": 471.9, "orc": 471.9, "real": 0, "saldo": 471.9, "pct": 0}, {"code": "001.08.03.02", "nivel": 4, "desc": "FORNECIMENTO DE CUBA DE AÇO INOX DUPLA 70X34CM REF. 94061/407 - TRAMONTINA", "und": "UND", "quant": 1, "preco_unit": 449, "orc": 449, "real": 0, "saldo": 449, "pct": 0}, {"code": "001.08.03.03", "nivel": 4, "desc": "FORNECIMENTO DE TORNEIRA DE MESA PARA COZINHA - 1167.C35", "und": "UND", "quant": 1, "preco_unit": 128.54, "orc": 128.54, "real": 0, "saldo": 128.54, "pct": 0}, {"code": "001.08.03.04", "nivel": 4, "desc": "DUCHA HIGIÊNICA", "und": "UND", "quant": 1, "preco_unit": 225, "orc": 225, "real": 0, "saldo": 225, "pct": 0}, {"code": "001.08.03.05", "nivel": 4, "desc": "INSTALAÇÃO DE ACESSÓRIOS PARA CUBA DE AÇO INOX", "und": "UND", "quant": 1, "preco_unit": 79.1822, "orc": 79.1822, "real": 0, "saldo": 79.1822, "pct": 0}, {"code": "001.08.03.06", "nivel": 4, "desc": "INSTALAÇÃO DE ACESSÓRIOS PARA TORNEIRAS", "und": "UND", "quant": 2, "preco_unit": 47.226438875, "orc": 94.45287775, "real": 0, "saldo": 94.45287775, "pct": 0}, {"code": "001.09", "nivel": 2, "desc": "INSTALAÇÕES", "und": null, "quant": null, "preco_unit": null, "orc": 32986.26, "real": 6515.23, "saldo": 26471.03, "pct": 0.197513449539293}, {"code": "001.09.01", "nivel": 3, "desc": "INSTALAÇÕES ELÉTRICAS", "und": null, "quant": null, "preco_unit": null, "orc": 16400, "real": 2104.07, "saldo": 14295.93, "pct": 0.128296951219512}, {"code": "001.09.01.01", "nivel": 4, "desc": "FORNECIMENTO E EXECUÇÃO DE INSTALAÇÃO ELÉTRICAS E LUMINOTÉCNICAS", "und": "OE", "quant": 1, "preco_unit": 16400, "orc": 16400, "real": 2104.07, "saldo": 14295.93, "pct": 0.128296951219512}, {"code": "001.09.02", "nivel": 3, "desc": "INSTALAÇÕES DE REDE E TELEFONE", "und": null, "quant": null, "preco_unit": null, "orc": 2653.38, "real": 0, "saldo": 2653.38, "pct": 0}, {"code": "001.09.02.01", "nivel": 4, "desc": "FORNECIMENTO E EXECUÇÃO DE INSTALAÇÃO REDE/TELEFONE", "und": "OE", "quant": 1, "preco_unit": 2653.38, "orc": 2653.38, "real": 0, "saldo": 2653.38, "pct": 0}, {"code": "001.09.03", "nivel": 3, "desc": "INSTALAÇÕES HIDROSSANITÁRIAS", "und": null, "quant": null, "preco_unit": null, "orc": 861.72, "real": 0, "saldo": 861.72, "pct": 0}, {"code": "001.09.03.01", "nivel": 4, "desc": "FORNECIMENTO E EXECUÇÃO DE INSTALAÇÃO HIDROSSANITÁRIA", "und": "OE", "quant": 1, "preco_unit": 861.72, "orc": 861.72, "real": 0, "saldo": 861.72, "pct": 0}, {"code": "001.09.04", "nivel": 3, "desc": "INSTALAÇÕES FRIGORIGENAS", "und": null, "quant": null, "preco_unit": null, "orc": 8200, "real": 4411.16, "saldo": 3788.84, "pct": 0.537946341463415}, {"code": "001.09.04.01", "nivel": 4, "desc": "FORNECIMENTO E EXECUÇÃO DE INSTALAÇÃO FRIGORÍGENA", "und": "OE", "quant": 1, "preco_unit": 8200, "orc": 8200, "real": 4411.16, "saldo": 3788.84, "pct": 0.537946341463415}, {"code": "001.09.05", "nivel": 3, "desc": "INSTALAÇÕES DE COMBATE A INCÊNDIO", "und": null, "quant": null, "preco_unit": null, "orc": 4871.16, "real": 0, "saldo": 4871.16, "pct": 0}, {"code": "001.09.05.01", "nivel": 4, "desc": "FORNECIMENTO E EXECUÇÃO DE INSTALAÇÃO DE COMBATE A INCÊNDIO", "und": "OE", "quant": 1, "preco_unit": 4871.16, "orc": 4871.16, "real": 0, "saldo": 4871.16, "pct": 0}, {"code": "001.10", "nivel": 2, "desc": "LIMPEZA", "und": null, "quant": null, "preco_unit": null, "orc": 1498.34, "real": 0, "saldo": 1498.34, "pct": 0}, {"code": "001.10.01", "nivel": 3, "desc": "LIMPEZA", "und": null, "quant": null, "preco_unit": null, "orc": 1498.34, "real": 0, "saldo": 1498.34, "pct": 0}, {"code": "001.10.01.01", "nivel": 4, "desc": "EXECUÇÃO DE LIMPEZA FINAL DE OBRA", "und": "M2", "quant": 39.43, "preco_unit": 38, "orc": 1498.34, "real": 0, "saldo": 1498.34, "pct": 0}, {"code": "002", "nivel": 1, "desc": "AMBIENTAÇÃO", "und": null, "quant": null, "preco_unit": null, "orc": 128014.56, "real": 0, "saldo": 128014.56, "pct": 0}, {"code": "002.01", "nivel": 2, "desc": "AMBIENTAÇÃO", "und": null, "quant": null, "preco_unit": null, "orc": 128014.56, "real": 0, "saldo": 128014.56, "pct": 0}, {"code": "002.01.01", "nivel": 3, "desc": "MÓVEIS SOLTOS", "und": null, "quant": null, "preco_unit": null, "orc": 34800, "real": 0, "saldo": 34800, "pct": 0}, {"code": "002.01.01.01", "nivel": 4, "desc": "FORNECIMENTO DE MÓVEIS SOLTOS", "und": "VB", "quant": 1, "preco_unit": 34800, "orc": 34800, "real": 0, "saldo": 34800, "pct": 0}, {"code": "002.01.02", "nivel": 3, "desc": "ILUMINAÇÃO", "und": null, "quant": null, "preco_unit": null, "orc": 19564.36, "real": 0, "saldo": 19564.36, "pct": 0}, {"code": "002.01.02.01", "nivel": 4, "desc": "FORNECIMENTO DE ILUMINAÇÃO", "und": "VB", "quant": 1, "preco_unit": 19564.36, "orc": 19564.36, "real": 0, "saldo": 19564.36, "pct": 0}, {"code": "002.01.03", "nivel": 3, "desc": "MARCENARIA", "und": null, "quant": null, "preco_unit": null, "orc": 48810.2, "real": 0, "saldo": 48810.2, "pct": 0}, {"code": "002.01.03.01", "nivel": 4, "desc": "FORNECIMENTO DE MARCENARIA", "und": "VB", "quant": 1, "preco_unit": 48810.2, "orc": 48810.2, "real": 0, "saldo": 48810.2, "pct": 0}, {"code": "002.01.04", "nivel": 3, "desc": "ELETRODOMÉSTICOS", "und": null, "quant": null, "preco_unit": null, "orc": 24840, "real": 0, "saldo": 24840, "pct": 0}, {"code": "002.01.04.01", "nivel": 4, "desc": "FORNECIMENTO DE ELETRODOMÉSTICOS", "und": "VB", "quant": 1, "preco_unit": 24840, "orc": 24840, "real": 0, "saldo": 24840, "pct": 0}]}, "obra": {"fotos": [{"n": 1, "data": "2026-09-21T00:00:00", "dia_semana": "Segunda-feira", "etapa": "Sala (visão geral) — a confirmar", "obs": "Visão geral da sala: paredes pintadas em cinza; piso amadeirado (vinílico/laminado) instalado, com manchas/resíduos superficiais; forro liso com 7 luminárias de embutir acesas; porta de madeira instalada ao fundo; sanitário com batente instalado e fiação ainda exposta acima da porta; pontos de tomada instalados nas paredes; rodapé não identificado na imagem.", "label": "Sala (visão geral)", "img": "/_blob/f237cd0025f0eb7622e7e32c6dd460e9", "etapa_exib": "Levantamento inicial"}, {"n": 2, "data": "2026-09-22T00:00:00", "dia_semana": "Terça-feira", "etapa": "Sala — a confirmar", "obs": "Piso amadeirado (vinílico/laminado) ainda presente na maior parte da área; faixa de contrapiso com resíduos de cola exposta junto à parede direita (aparenta remoção do piso em andamento — a confirmar); profissional trabalhando junto à janela ao fundo; réguas de piso soltas no canto direito; sprinkler no forro; luminárias de embutir acesas.", "label": "Faixa de contrapiso exposta", "img": "/_blob/04a23984e0ed37c76e8c33b8d458ee30", "etapa_exib": "Remoção de piso, contrapiso e assentamento de porcelanato"}, {"n": 3, "data": "2026-09-22T00:00:00", "dia_semana": "Terça-feira", "etapa": "Sala — a confirmar", "obs": "Contrapiso sem revestimento, com resíduos de cola/argamassa e falhas na superfície (piso removido); réguas do piso empilhadas junto à parede direita; profissional ao fundo, perto da janela; paredes pintadas; luminárias de embutir acesas.", "label": "Contrapiso exposto", "img": "/_blob/3617cb4ba32f5ef5be5d4d327af2c01f", "etapa_exib": "Remoção de piso, contrapiso e assentamento de porcelanato"}, {"n": 4, "data": "2026-09-22T00:00:00", "dia_semana": "Terça-feira", "etapa": "Sala — a confirmar", "obs": "Contrapiso com resíduos de cola/argamassa, sem piso; pilha de réguas de piso removidas encostada na parede esquerda; ao fundo, porta de madeira instalada e sanitário; no forro, dois painéis retangulares sem luminária; ponto elétrico com cabo exposto na parede esquerda; profissional carregando mochila.", "label": "Contrapiso, réguas empilhadas", "img": "/_blob/52826b36ed7642c8e6bfe462ba4322f4", "etapa_exib": "Remoção de piso, contrapiso e assentamento de porcelanato"}, {"n": 5, "data": "2026-09-23T00:00:00", "dia_semana": "Quarta-feira", "etapa": "Sala — a confirmar", "obs": "Grande quantidade de poeira em suspensão na sala, indicando serviço com geração de pó sobre o contrapiso (provável raspagem/lixamento — a confirmar); contrapiso com resíduos de cola ainda visíveis; cabo de extensão no piso; luminárias de embutir acesas; batente do sanitário com fiação exposta acima.", "label": "Serviço com poeira no contrapiso", "img": "/_blob/d01a4848d62c6a38b46b52945556edb4", "etapa_exib": "Remoção de piso, contrapiso e assentamento de porcelanato"}, {"n": 6, "data": "2026-09-23T00:00:00", "dia_semana": "Quarta-feira", "etapa": "Sala — a confirmar", "obs": "Instalações frigorígenas em andamento: tubulação de cobre com isolamento térmico (esponjoso) descendo por abertura no forro, com cabo/fio junto; rolos de tubulação branca no piso ao fundo; escada e galão de material na sala; contrapiso mais limpo que no dia anterior; ponto com cabo de rede exposto na parede esquerda; pequena abertura adicional no forro.", "label": "Instalação frigorígena (cobre no forro)", "img": "/_blob/c37a5c1c6f0d26138f0127a0804d7f9b", "etapa_exib": "Remoção de piso, contrapiso e assentamento de porcelanato"}, {"n": 7, "data": "2026-09-25T00:00:00", "dia_semana": "Sexta-feira", "etapa": "Sala — a confirmar", "obs": "Contrapiso limpo (resíduos de cola em parte removidos); dois profissionais varrendo/limpando ao fundo e outro junto à parede direita manuseando placas de porcelanato apoiadas na parede; perfis metálicos e cabo no piso à direita; tubulação frigorígena isolada (branca) pendente do forro à esquerda e outra saindo do forro na parede direita; luminárias de embutir acesas.", "label": "Preparo do contrapiso e limpeza", "img": "/_blob/5a80f4465f0ae53d4e8feb6341a410a6", "etapa_exib": "Remoção de piso, contrapiso e assentamento de porcelanato"}, {"n": 8, "data": "2026-09-25T00:00:00", "dia_semana": "Sexta-feira", "etapa": "Sala — a confirmar", "obs": "Marcação de alinhamento com nível a laser (linhas verdes); primeira faixa de porcelanato de grande formato posicionada/assentada sobre o contrapiso, na região da entrada; portas de madeira ao fundo; sanitário com eletroduto/fiação amarela exposta acima do batente.", "label": "Marcação a laser e 1ª faixa de porcelanato", "img": "/_blob/334ff75612a29d6bcbee4893a16e3412", "etapa_exib": "Remoção de piso, contrapiso e assentamento de porcelanato"}, {"n": 9, "data": "2026-09-25T00:00:00", "dia_semana": "Sexta-feira", "etapa": "Sala — a confirmar", "obs": "Assentamento de porcelanato de grande formato em andamento: profissional aplicando argamassa colante com desempenadeira dentada; sistema de nivelamento com cunhas/espaçadores vermelhos nas juntas; martelo de borracha, trena e embalagens de espaçadores no piso; placa apoiada na parede esquerda.", "label": "Assentamento do porcelanato (argamassa)", "img": "/_blob/22f4eb58285cbefed2fad2081b1600d9", "etapa_exib": "Remoção de piso, contrapiso e assentamento de porcelanato"}, {"n": 10, "data": "2026-09-25T00:00:00", "dia_semana": "Sexta-feira", "etapa": "Sala — a confirmar", "obs": "Faixa central de porcelanato assentada com sistema de nivelamento (cunhas vermelhas) e juntas alinhadas; argamassa colante já espalhada na borda inferior para a próxima fileira; resíduos de cola/argamassa no contrapiso ao redor; cabo de rede exposto na parede direita.", "label": "Faixa assentada com niveladores", "img": "/_blob/2258a4b9900569d3497424b967964705", "etapa_exib": "Remoção de piso, contrapiso e assentamento de porcelanato"}, {"n": 11, "data": "2026-09-25T00:00:00", "dia_semana": "Sexta-feira", "etapa": "Sala — a confirmar", "obs": "Dois profissionais conferindo nível/prumo e marcando referência na parede com nível de bolha (finalidade a confirmar, provável referência para o assentamento); um deles usa capacete; ao fundo, contrapiso limpo e placas de porcelanato apoiadas.", "label": "Marcação de nível na parede", "img": "/_blob/3d4e8d4130a9a6490a0c8932897cdc94", "etapa_exib": "Remoção de piso, contrapiso e assentamento de porcelanato"}, {"n": 12, "data": "2026-10-01T00:00:00", "dia_semana": "Quinta-feira", "etapa": "Execução de divisórias de gesso em drywall", "obs": "Piso em porcelanato de grande formato já assentado e limpo; vão de entrada com estrutura de alumínio para divisória de vidro sendo montada; dois profissionais sobre escadas (degraus vermelhos) trabalhando na fixação dos perfis; perfis de alumínio soltos e cabos no piso; forro liso com luminárias de embutir acesas e detector de fumaça; ao fundo, reflexo mostra outro ambiente em obra.", "label": "Montagem da divisória de vidro/alumínio", "img": "/_blob/a013c55af50d0e58320433e2a91f3d38", "etapa_exib": "Divisórias em drywall e gesso"}, {"n": 13, "data": "2026-10-01T00:00:00", "dia_semana": "Quinta-feira", "etapa": "Execução de divisórias de gesso em drywall", "obs": "Mesma estrutura de alumínio da divisória de vidro, em enquadramento mais fechado; duto flexível branco (climatização/exaustão — a confirmar) descendo de abertura no forro; dois profissionais seguem sobre escadas ajustando os perfis; piso em porcelanato já assentado.", "label": "Divisória de vidro — detalhe", "img": "/_blob/5d48f9caeb6e1fe47409e38b0a4bc1f5", "etapa_exib": "Divisórias em drywall e gesso"}, {"n": 14, "data": "2026-10-01T00:00:00", "dia_semana": "Quinta-feira", "etapa": "Execução de divisórias de gesso em drywall", "obs": "Placa de gesso/cimentícia já fechada em parede lateral; linha de nível a laser (verde) projetada no forro; estrutura metálica (guias/montantes) de nova divisória sendo instalada junto a um vão de porta de vidro; um profissional de boné e blusa verde parafusando próximo ao piso, outro ajustando o batente/estrutura da porta.", "label": "Estrutura metálica da divisória + placa de gesso", "img": "/_blob/b179bea0afe51999ab01bc60bc1aa2e5", "etapa_exib": "Divisórias em drywall e gesso"}, {"n": 15, "data": "2026-10-01T00:00:00", "dia_semana": "Quinta-feira", "etapa": "Execução de divisórias de gesso em drywall", "obs": "Fechamento em placas de gesso/cimentícia concluído em parede lateral; trilho de alumínio com porta de vidro instalado ao lado; abertura no forro sem luminária com fiação exposta; duto flexível branco no canto superior; profissional de blusa preta (estampa \"Nike\") em pé; outro de boné e blusa verde trabalhando na parede com parafusadeira, balde de selador \"Iquine\" no piso.", "label": "Placas de gesso fechadas + fiação exposta no forro", "img": "/_blob/63dc9a424cf3ee0df4db7e17569e7e73", "etapa_exib": "Divisórias em drywall e gesso"}, {"n": 16, "data": "2026-10-01T00:00:00", "dia_semana": "Quinta-feira", "etapa": "Execução de divisórias de gesso em drywall", "obs": "Estrutura metálica (guias/montantes) de nova divisória interna erguida no meio da sala, delimitando um novo ambiente; piso em porcelanato já assentado; duto flexível branco em alça pendente do forro; dois profissionais dentro do vão da estrutura (um com parafusadeira); escada de alumínio com degraus vermelhos encostada à direita; balde de selador e bolsa de ferramentas no piso.", "label": "Estrutura metálica de nova divisória interna", "img": "/_blob/b3b42a2957e1bcbd0578babcb9c5bfe9", "etapa_exib": "Divisórias em drywall e gesso"}, {"n": 17, "data": "2026-10-01T00:00:00", "dia_semana": "Quinta-feira", "etapa": "Execução de divisórias de gesso em drywall", "obs": "Vista do corredor formado pela nova divisória: placa de gesso já fechada na parede à esquerda; estrutura metálica com trilho de alumínio à direita, ainda sem fechamento; piso em porcelanato; ao fundo, outro ambiente em obra com prateleiras/placas encostadas e escada.", "label": "Corredor da nova divisória — lado fechado x lado aberto", "img": "/_blob/01637d738d8ee886d9557498a6e45b4d", "etapa_exib": "Divisórias em drywall e gesso"}, {"n": 18, "data": "2026-10-01T00:00:00", "dia_semana": "Quinta-feira", "etapa": "Execução de divisórias de gesso em drywall", "obs": "Três profissionais na mesma área: dois instalando/fixando placa de gesso na parede à esquerda, um terceiro de blusa preta com o braço erguido junto à estrutura metálica à direita; balde de selador \"Iquine\" e bolsa de ferramentas no piso; escada de alumínio com ferramentas amarelas apoiada à direita.", "label": "Equipe trabalhando na divisória (fechamento + estrutura)", "img": "/_blob/6fb6a5825d75c8f4f6ea18d67bfe891a", "etapa_exib": "Divisórias em drywall e gesso"}, {"n": 19, "data": "2026-10-01T00:00:00", "dia_semana": "Quinta-feira", "etapa": "Execução de divisórias de gesso em drywall", "obs": "Dois profissionais sobre escada/estrutura instalando duto flexível branco em alça junto ao forro, próximo a uma abertura com luminária de embutir; corredor com diversas luminárias de embutir acesas ao fundo; placas de gesso no piso e encostadas na parede à esquerda.", "label": "Instalação de duto flexível no forro", "img": "/_blob/2059f690186897822f7f6d68d28eaad6", "etapa_exib": "Divisórias em drywall e gesso"}, {"n": 20, "data": "2026-10-02T00:00:00", "dia_semana": "Sexta-feira", "etapa": "Execução de instalações elétricas em drywall", "obs": "Duas aberturas no forro com conduítes corrugados amarelos (elétrica) descendo pela parede de gesso já fechada; fio de cobre desencapado em alça visível em uma emenda; escada de alumínio com degraus vermelhos abaixo; parede de gesso com montantes visíveis ao fundo à direita.", "label": "Conduítes elétricos (amarelos) descendo do forro", "img": "/_blob/7c350e7443a253fe6f7c1beed4abed9e", "etapa_exib": "Instalações elétricas em drywall"}, {"n": 21, "data": "2026-10-02T00:00:00", "dia_semana": "Sexta-feira", "etapa": "Execução de divisórias de gesso em drywall", "obs": "Nicho/vão estreito com gesso já fechado nas três paredes; piso em porcelanato assentado; conduíte branco com fiação exposta no canto superior esquerdo do forro; sprinkler aparente no forro.", "label": "Nicho com gesso fechado", "img": "/_blob/79eaab32b19d6356eb14f8502fbbc56b", "etapa_exib": "Divisórias em drywall e gesso"}, {"n": 22, "data": "2026-10-02T00:00:00", "dia_semana": "Sexta-feira", "etapa": "Execução de divisórias de gesso em drywall", "obs": "Detalhe de acabamento: profissional marcando/conferindo linha vertical na placa de gesso com ferramenta amarela (nível/esquadro pequeno — a confirmar); linhas de referência a lápis visíveis na placa.", "label": "Marcação/conferência na placa de gesso", "img": "/_blob/37aaa04e997a0a9e9e214c459f1591b7", "etapa_exib": "Divisórias em drywall e gesso"}, {"n": 23, "data": "2026-10-02T00:00:00", "dia_semana": "Sexta-feira", "etapa": "Execução de divisórias de gesso em drywall", "obs": "Profissional de luvas pretas conferindo nível/prumo da parede de gesso com nível de bolha pequeno, junto à emenda entre placas.", "label": "Conferência de nível/prumo na parede de gesso", "img": "/_blob/ff4f7ca87d90f4f550071f6a6b6d2417", "etapa_exib": "Divisórias em drywall e gesso"}, {"n": 24, "data": "2026-10-02T00:00:00", "dia_semana": "Sexta-feira", "etapa": "Execução de divisórias de gesso em drywall", "obs": "Outro nicho/vão estreito com gesso fechado nas paredes; piso em porcelanato assentado; conduíte com fiação exposta no canto superior do forro.", "label": "Nicho com gesso fechado — ângulo 2", "img": "/_blob/f1648fe8a3f3a29cfc9ab42215dff94c", "etapa_exib": "Divisórias em drywall e gesso"}, {"n": 25, "data": "2026-10-02T00:00:00", "dia_semana": "Sexta-feira", "etapa": "Execução de divisórias de gesso em drywall", "obs": "Visão geral da nova divisória: fechamento em placas de gesso praticamente concluído, com vão de porta/trilho de alumínio à esquerda; rolo de manta/isolamento rosa no piso; caixa de porcelanato \"Cerbras\" encostada à direita; duas aberturas no forro com luminárias ainda não instaladas.", "label": "Divisória com fechamento em gesso quase concluído", "img": "/_blob/14defe87c745d64cd8d9470ffe9bce2a", "etapa_exib": "Divisórias em drywall e gesso"}, {"n": 26, "data": "2026-10-02T00:00:00", "dia_semana": "Sexta-feira", "etapa": "Execução de divisórias de gesso em drywall", "obs": "Nicho/vão com gesso fechado nas paredes, trilho de alumínio da porta à direita; piso em porcelanato; ferramenta (pistola/soprador com mangueira verde) apoiada no chão junto à base da parede.", "label": "Nicho com gesso fechado — acabamento junto à porta", "img": "/_blob/51ff3adce9cf358a77386bb0efaaca59", "etapa_exib": "Divisórias em drywall e gesso"}], "etapas": [{"nome": "Sala (visão geral) — a confirmar", "inicio": "2026-09-21T00:00:00", "fim": "2026-09-21T00:00:00", "qtd": 1, "nome_exib": "Levantamento inicial"}, {"nome": "Sala — a confirmar", "inicio": "2026-09-22T00:00:00", "fim": "2026-09-25T00:00:00", "qtd": 10, "nome_exib": "Remoção de piso, contrapiso e assentamento de porcelanato"}, {"nome": "Execução de divisórias de gesso em drywall", "inicio": "2026-10-01T00:00:00", "fim": "2026-10-02T00:00:00", "qtd": 14, "nome_exib": "Divisórias em drywall e gesso"}, {"nome": "Execução de instalações elétricas em drywall", "inicio": "2026-10-02T00:00:00", "fim": "2026-10-02T00:00:00", "qtd": 1, "nome_exib": "Instalações elétricas em drywall"}]}, "prazo": {"inicio": "2026-09-21", "fim": "2026-12-31", "hoje": "2026-10-05", "previsto_executado": [{"etapa": "Remoção de piso, contrapiso e assentamento de porcelanato", "atividade_planejada": "Remoção e Preparação", "duracao": 5, "planejado_inicio": "2026-09-21", "planejado_fim": "2026-09-26", "real_inicio": "2026-09-22", "real_fim": "2026-09-25", "planejado_start_band": 0.0, "planejado_w_band": 0.1667, "real_start_band": 0.0333, "real_w_band": 0.1}, {"etapa": "Remoção de piso, contrapiso e assentamento de porcelanato", "atividade_planejada": "Revestimentos Cerâmicos", "duracao": 15, "planejado_inicio": "2026-11-16", "planejado_fim": "2026-12-01", "real_inicio": "2026-09-22", "real_fim": "2026-09-25", "planejado_start_band": 1.8667, "planejado_w_band": 0.5, "real_start_band": 0.0333, "real_w_band": 0.1}, {"etapa": "Divisórias em drywall e gesso", "atividade_planejada": "Paredes e Painéis (Divisórias)", "duracao": 12, "planejado_inicio": "2026-10-24", "planejado_fim": "2026-11-05", "real_inicio": "2026-10-01", "real_fim": "2026-10-02", "planejado_start_band": 1.1, "planejado_w_band": 0.4, "real_start_band": 0.3333, "real_w_band": 0.0333}, {"etapa": "Instalações elétricas em drywall", "atividade_planejada": "Instalações Elétricas, Hidráulicas e Frigorígenas", "duracao": 15, "planejado_inicio": "2026-09-26", "planejado_fim": "2026-10-11", "real_inicio": "2026-09-23", "real_fim": "2026-10-02", "planejado_start_band": 0.1667, "planejado_w_band": 0.5, "real_start_band": 0.0667, "real_w_band": 0.3}], "previsto_executado_metodologia": "Datas planejadas estimadas a partir do Planejamento da Obra da Projeção de Custos original (que usa apenas blocos mensais SET/OUT/NOV/DEZ), ancoradas na data de início contratual (21/09/2026) com meses de 30 dias. Datas reais (início e término) vêm do intervalo de fotos registradas de cada etapa no Diário de Obra.", "previsto_executado_bands": 4.0}, "proximos_passos": [{"categoria": "Planejamento", "titulo": "Execução de revestimentos do lavabo", "status": "planejado"}, {"categoria": "Planejamento", "titulo": "Conclusão das instalações elétricas", "status": "planejado"}, {"categoria": "Planejamento", "titulo": "Conclusão de paredes em gesso", "status": "planejado"}, {"categoria": "Planejamento", "titulo": "Início de elementos decorativos em gesso", "status": "planejado"}, {"categoria": "Desembolso", "titulo": "Fechamento de pedras e marcenaria", "status": "planejado"}], "projecao": {"categorias": [{"nome": "Ambientação", "desc": "Móveis, iluminação, marcenaria, eletrodomésticos", "valor": 128014.56, "pct": 0.471}, {"nome": "Revestimentos e Pintura", "desc": "Pisos, paredes, textura e tinta", "valor": 42528.54, "pct": 0.156}, {"nome": "Instalações", "desc": "Elétrica, hidráulica, frigorígena, incêndio, rede", "valor": 32986.26, "pct": 0.121}, {"nome": "Estrutura e Alvenaria", "desc": "Serviços preliminares, drywall, forro, esquadrias", "valor": 29434.56, "pct": 0.108}, {"nome": "Despesas Indiretas", "desc": "Mobilização, equipe, projetos", "valor": 24985.62, "pct": 0.092}, {"nome": "Acabamentos", "desc": "Bancadas, louças, metais, limpeza", "valor": 14013.42, "pct": 0.052}], "categorias_total": 271962.96, "categorias_blocos": {"obra_civil": 143948.4, "ambientacao": 128014.56}, "gantt": [{"nome": "Remoção e Preparação", "dur": "5d", "start": 0.0, "w": 0.16}, {"nome": "Instalações Elétricas, Hidráulicas e Frigorígenas", "dur": "15d", "start": 0.16, "w": 0.55}, {"nome": "Paredes e Painéis (Divisórias)", "dur": "12d", "start": 1.1, "w": 0.45}, {"nome": "Forro de Gesso", "dur": "10d", "start": 1.6, "w": 0.4}, {"nome": "Esquadria Metálica", "dur": "1d", "start": 1.93, "w": 0.07}, {"nome": "Esquadria de Madeira", "dur": "2d", "start": 2.0, "w": 0.1}, {"nome": "Revestimentos Cerâmicos", "dur": "15d", "start": 1.85, "w": 0.5}, {"nome": "Bancadas", "dur": "5d", "start": 2.35, "w": 0.18}, {"nome": "Louças e Metais", "dur": "2d", "start": 2.35, "w": 0.08}, {"nome": "Pintura", "dur": "15d", "start": 2.35, "w": 0.55}, {"nome": "Marcenaria e Ambientação", "dur": "15d", "start": 2.9, "w": 0.55}, {"nome": "Acabamentos e Limpeza Final", "dur": "8d", "start": 3.5, "w": 0.3}], "gantt_nota": "Despesas Indiretas (mobilização, equipe administrativa, elaboração de projetos) correm em paralelo a toda a obra e não constam como etapa física.", "fluxo_meses": [{"mes": "Setembro", "previsto": 55033.44, "itens": [{"nome": "Revestimentos (parcelado)", "valor": 2124.36}, {"nome": "Bancadas (parcelado)", "valor": 1202.99}, {"nome": "Iluminação (parcelado)", "valor": 2579.92}, {"nome": "Marcenaria (parcelado)", "valor": 6436.51}, {"nome": "Eletrodomésticos (parcelado)", "valor": 3275.6}, {"nome": "Despesas Indiretas", "valor": 24985.62}, {"nome": "Serviços Preliminares", "valor": 8695.56}, {"nome": "Instalações Hidrossanitárias (compra)", "valor": 430.86}, {"nome": "Instalações de Incêndio (compra)", "valor": 2922.7}, {"nome": "Instalações Hidrossanitárias (mão de obra)", "valor": 430.86}, {"nome": "Instalações de Incêndio (mão de obra)", "valor": 1948.46}]}, {"mes": "Outubro", "previsto": 88908.45, "itens": [{"nome": "Instalações Elétricas (compra)", "valor": 9840.0}, {"nome": "Instalações de Rede e Telefone (compra)", "valor": 1592.03}, {"nome": "Revestimentos (mão de obra, parcelado)", "valor": 8233.0}, {"nome": "Revestimentos (compra, parcelado)", "valor": 5487.93}, {"nome": "Bancadas (parcelado)", "valor": 3107.73}, {"nome": "Iluminação (parcelado)", "valor": 6664.78}, {"nome": "Marcenaria (parcelado)", "valor": 16627.65}, {"nome": "Eletrodomésticos (parcelado)", "valor": 8461.98}, {"nome": "Paredes e Painéis (compra)", "valor": 7594.3}, {"nome": "Instalações Elétricas (mão de obra)", "valor": 6560.0}, {"nome": "Instalações de Rede e Telefone (mão de obra)", "valor": 1061.35}, {"nome": "Instalações Frigorígenas (compra)", "valor": 5740.0}, {"nome": "Paredes e Painéis (mão de obra)", "valor": 3254.7}, {"nome": "Instalações Frigorígenas (mão de obra)", "valor": 2460.0}, {"nome": "Forro de Gesso", "valor": 2223.0}]}, {"mes": "Novembro", "previsto": 103093.65, "itens": [{"nome": "Forro de Gesso", "valor": 1197.0}, {"nome": "Esquadria Metálica (compra)", "valor": 612.0}, {"nome": "Esquadria de Madeira (compra)", "valor": 4887.5}, {"nome": "Louças e Metais (compra)", "valor": 2129.34}, {"nome": "Pintura (compra)", "valor": 6365.03}, {"nome": "Esquadria Metálica (mão de obra)", "valor": 108.0}, {"nome": "Esquadria de Madeira (mão de obra)", "valor": 862.5}, {"nome": "Louças e Metais (mão de obra)", "valor": 249.42}, {"nome": "Bancadas (mão de obra, parcelado)", "valor": 1013.63}, {"nome": "Bancadas (compra, parcelado)", "valor": 3007.48}, {"nome": "Revestimentos (parcelado)", "valor": 5310.9}, {"nome": "Iluminação (parcelado)", "valor": 6449.79}, {"nome": "Marcenaria (parcelado)", "valor": 16091.27}, {"nome": "Eletrodomésticos (parcelado)", "valor": 8189.01}, {"nome": "Pintura (mão de obra)", "valor": 11820.77}, {"nome": "Móveis Soltos", "valor": 34800.0}]}, {"mes": "Dezembro", "previsto": 24927.41, "itens": [{"nome": "Revestimentos (parcelado)", "valor": 3186.54}, {"nome": "Bancadas (parcelado)", "valor": 1804.49}, {"nome": "Iluminação (parcelado)", "valor": 3869.87}, {"nome": "Marcenaria (parcelado)", "valor": 9654.76}, {"nome": "Eletrodomésticos (parcelado)", "valor": 4913.41}, {"nome": "Limpeza", "valor": 1498.34}]}], "fluxo_premissas": ["Iluminação — 15 dias antes do uso", "Bancadas (Pedras) — 20 dias antes do uso", "Revestimentos (Porcelanato) — 15 dias antes do uso", "Marcenaria — 30 dias antes do uso", "Eletrodomésticos — 15 dias antes do uso"], "fluxo_premissas_extra": "Demais itens: material vinculado ao início da etapa correspondente; mão de obra vinculada ao término (medição).", "executado_mensal": {"Setembro": 9430.15, "Outubro": 5208.44, "Novembro": 0, "Dezembro": 0}, "memorial": [{"nome": "Recepção e Sala de Espera", "area": "15,33m²", "itens": [["Piso", "Porcelanato Aeterna Bianco ST 120×120cm, natural retificado — Portobello", ""], ["Parede — estrutura/prateleiras", "Pintura acetinada cor marrom — Potes Antigos 80YR 21/118 ou Marrom do Século 80YR 19/177 — Coral", "Estrutura e prateleiras em gesso boleado"], ["Parede — bancada/detalhe", "Pintura tipo cimento queimado base bege — Chá com Leite 44YY 69/069 ou Seda Damasco 20YY 67/084 — Coral", "Inclui fechamento vertical do forro"], ["Rodapé", "Perfil metálico na cor dourada, a definir", "Perímetro = 20,00m"], ["Bancada", "Granito Branco Itaúnas (polido) sobre base em drywall pintado cimento queimado bege", ""], ["Forro", "Existente mantido — pintura marrom (4,20m²) e cimento queimado bege (11,13m²)", "Avaliar necessidade de forro novo com o engenheiro"], ["Ar-condicionado", "Split 18.000 BTU — 1 unidade", "Descarga horizontal — unidade condensadora 01"], ["Eletrodoméstico", "Frigobar Brastemp Retrô 76L Classic White (BRA08MB) ou similar", ""]]}, {"nome": "Lavabo", "area": "1,77m²", "itens": [["Piso e Parede", "Porcelanato Aeterna Bianco ST 120×120cm — 6 peças (6,17m²)", ""], ["Parede — detalhe", "Textura cimento queimado cor vinho — Compota de Goiaba 90RR16/298, Vermelho Tribal 90RR11/257 ou Pluma Vermelha 70RR13/253 (2,75m²)", "Porta a alizar na mesma cor"], ["Parede", "Papel de parede a definir (4,56m² — 1 rolo)", ""], ["Rodapé", "Perfil dourado, a definir", "Perímetro = 1,99m"], ["Bancada", "Drywall RU (chapa verde) impermeabilizado, pintura cimento queimado vermelho, tampo em pedra vermelha a definir", "Estrutura interna em perfis metálicos galvanizados"], ["Cuba", "Cuba redonda de apoio 40cm, branco slim — Deca", ""], ["Torneira/Bica", "Memphis Deca You, cor Corten — Deca", ""], ["Ducha higiênica", "Universal despressurizada, cor Corten — Deca", ""], ["Cabide", "Quadratta, cor Corten — Deca", ""], ["Forro", "Existente mantido, pintura cor vinho a definir (1,77m²)", "Sanca iluminada com perfil LED de canto 45°"]]}, {"nome": "Sala de Avaliação", "area": "1,55m²", "itens": [["Piso", "Porcelanato Aeterna Bianco ST 120×120cm, natural retificado — Portobello", ""], ["Parede", "Pintura acetinada cor Esconderijo Silencioso 81YY 81/016 — Coral", ""], ["Rodapé", "Poliestireno branco liso 70mm — Santa Luzia cód. 231157, pintado na cor da parede", "Perímetro = 4,34m (2 réguas)"], ["Forro", "Existente mantido, mesma pintura (1,55m²)", ""], ["Ar-condicionado", "Split 9.000 BTU — 1 unidade", "Descarga horizontal — unidade condensadora 02"]]}, {"nome": "Copa", "area": "1,55m²", "itens": [["Bancada", "Granito Branco Itaúnas (polido) — área seca e área molhada", "Rebaixo de 1cm na área molhada"], ["Cuba", "Cuba de embutir Lavínia 40 BL, aço inox escovado 40×34cm — Tramontina", ""], ["Torneira", "A definir", ""], ["Purificador de água", "Compacto Efficient Painel Digital, bivolt cinza — Electrolux (PE11X)", ""], ["Eletrodomésticos", "Frigobar Brastemp Retrô 76L Classic White (BRA08MB); previsão para micro-ondas", ""], ["Forro", "Existente mantido, pintura Esconderijo Silencioso (1,60m²)", ""]]}, {"nome": "Corredor", "area": "3,48m²", "itens": [["Parede", "Textura cimento queimado cor bege, a definir (10,02m²)", ""], ["Parede", "Pintura acetinada Esconderijo Silencioso 81YY 81/016 (14,80m²)", ""], ["Rodapé", "Perfil metálico dourado, a definir", "Perímetro = 6,79m"], ["Portas", "Porta de giro a adquirir, porta de correr e portas em marcenaria", "Pintura na cor Esconderijo Silencioso"], ["Forro", "Existente mantido, mesma pintura (3,57m²)", "Sanca iluminada, perfil LED de canto 45°, 3,90m"], ["Decoração", "2 quadros — 1,23×1,23m e 0,61×0,89m", ""]]}, {"nome": "Sala de Atendimento 01", "area": "6,92m²", "itens": [["Parede", "Pintura tipo cimento queimado cor marrom — Obelisco 20YY45/114 ou Passeio de Canoa 97YR39/118 (8,60m²)", "Estrutura de gesso com detalhes boleados"], ["Parede", "Papel de parede a definir (10,00m² — 2 rolos)", "Estrutura de gesso com iluminação embutida"], ["Parede/Porta", "Pintura acetinada cor bege Lua Minguante — Suvinil (7,10m²)", ""], ["Rodapé", "Perfil metálico dourado, a definir", "Perímetro = 2,80m"], ["Mesa", "Tampo em mármore Travertino Romano (bruto)", "Base a adquirir; suporte metálico + base em acrílico"], ["Ar-condicionado", "Split 9.000 BTU — 1 unidade", "Descarga horizontal — unidade condensadora 02"], ["Forro", "Existente mantido, pintura Lua Minguante (6,92m²)", ""]]}, {"nome": "Sala de Atendimento 02", "area": "7,70m²", "itens": [["Parede", "Pintura tipo cimento queimado cor ocre — Fendi 20YY38/225 ou Cestaria 20YY31/205 (16,00m²)", ""], ["Parede", "Papel de parede a definir (5,00m² — 1 rolo)", "Estrutura de gesso boleada com iluminação embutida"], ["Bandô", "Gesso, pintura Esconderijo Silencioso", "Área bandô + forro = 9,30m²"], ["Rodapé", "Perfil metálico dourado, a definir", "Perímetro = 2,70m"], ["Mesa", "Tampo em mármore Travertino Romano (bruto)", ""], ["Esquadrias", "Existentes, mantidas", ""], ["Forro", "Existente mantido, pintura Esconderijo Silencioso (8,60m²)", ""]]}, {"nome": "Observação Geral — Piso", "area": "", "itens": [["Piso (todos os ambientes, salvo indicado)", "Porcelanato Aeterna Bianco ST 120×120cm, natural retificado — Portobello. Área total = 38,52m² (sem perda), 34 peças", "Confirmar sentido de assentamento conforme planta de paginação"]]}], "fluxo_justificativas": {"Setembro": "17% executado (R$ 9.430,15 de R$ 55.033,44). Pendente: Despesas Indiretas, Serviços Preliminares, Marcenaria, Eletrodomésticos. Itens pendentes em negociação para melhor fechamento de preço, sem impacto no início dos serviços.", "Outubro": "6% executado (R$ 5.208,44 de R$ 88.908,45). Pendente: Marcenaria, Instalações Elétricas, Eletrodomésticos, Revestimentos. Itens pendentes em negociação para melhor fechamento de preço, sem impacto no início dos serviços.", "Novembro": "Mês ainda não iniciado.", "Dezembro": "Mês ainda não iniciado."}}}</script>
+<script>
+(function(){
+  "use strict";
+  var DATA = JSON.parse(document.getElementById('data-json').textContent);
+  var BRL = new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});
+  var PCT = function(v,d){d=d==null?1:d;return (v*100).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d})+'%';};
+  var DATEFMT = function(iso){
+    if(!iso) return '';
+    var d = new Date(iso);
+    var days=['dom','seg','ter','qua','qui','sex','sáb'];
+    return String(d.getUTCDate()).padStart(2,'0')+'/'+String(d.getUTCMonth()+1).padStart(2,'0');
+  };
+  var DATEFULL = function(iso){
+    if(!iso) return '';
+    var d = new Date(iso);
+    return String(d.getUTCDate()).padStart(2,'0')+'/'+String(d.getUTCMonth()+1).padStart(2,'0')+'/'+d.getUTCFullYear();
+  };
+  function el(tag, cls, html){
+    var e = document.createElement(tag);
+    if(cls) e.className = cls;
+    if(html!=null) e.innerHTML = html;
+    return e;
+  }
+  function esc(s){
+    return (s==null?'':String(s)).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  /* ================= LINE CHART (previsto x executado) ================= */
+  function lineChart(labels, series, opts){
+    opts = opts || {};
+    var W = opts.w || 600, H = opts.h || 220, padL = 54, padR = 14, padT = 14, padB = 26;
+    var innerW = W - padL - padR, innerH = H - padT - padB;
+    var allVals = [];
+    series.forEach(function(s){ s.values.forEach(function(v){ allVals.push(v); }); });
+    var max = Math.max.apply(null, allVals.concat([1]));
+    max = max * 1.15;
+    var n = labels.length;
+    var x = function(i){ return padL + (n<=1?0:(innerW*i/(n-1))); };
+    var y = function(v){ return padT + innerH - (innerH*v/max); };
+    var svg = '<svg class="linechart" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet">';
+    var steps = 4;
+    for(var g=0; g<=steps; g++){
+      var gv = max*g/steps;
+      var gy = y(gv);
+      svg += '<line class="gridline" x1="'+padL+'" x2="'+(W-padR)+'" y1="'+gy+'" y2="'+gy+'"/>';
+      svg += '<text class="axis-label" x="'+(padL-8)+'" y="'+(gy+3)+'" text-anchor="end">'+fmtShortBRL(gv)+'</text>';
+    }
+    labels.forEach(function(lab,i){
+      svg += '<text class="axis-label" x="'+x(i)+'" y="'+(H-6)+'" text-anchor="middle">'+esc(lab)+'</text>';
+    });
+    series.forEach(function(s){
+      var d = s.values.map(function(v,i){ return (i===0?'M':'L')+x(i).toFixed(1)+' '+y(v).toFixed(1); }).join(' ');
+      svg += '<path class="'+s.cls+'" d="'+d+'"/>';
+      s.values.forEach(function(v,i){
+        svg += '<circle class="lc-dot" cx="'+x(i).toFixed(1)+'" cy="'+y(v).toFixed(1)+'" r="3.6" fill="'+s.dot+'"/>';
+      });
+    });
+    svg += '</svg>';
+    return svg;
+  }
+  function fmtShortBRL(v){
+    if(v>=1000) return 'R$ '+(v/1000).toLocaleString('pt-BR',{maximumFractionDigits:0})+'k';
+    return 'R$ '+v.toLocaleString('pt-BR',{maximumFractionDigits:0});
+  }
+
+  /* ================= PRAZO ================= */
+  function renderPrazo(){
+    var p = DATA.prazo;
+    var start = new Date(p.inicio+'T00:00:00Z'), end = new Date(p.fim+'T00:00:00Z'), today = new Date(p.hoje+'T00:00:00Z');
+    var totalDays = Math.round((end-start)/86400000);
+    var elapsed = Math.max(0, Math.min(totalDays, Math.round((today-start)/86400000)));
+    var remaining = totalDays - elapsed;
+    var pct = totalDays>0 ? elapsed/totalDays : 0;
+    var pe = p.previsto_executado || [];
+    var antesCount = pe.filter(function(r){return r.real_start_band < r.planejado_start_band;}).length;
+
+    var panel = document.getElementById('panel-prazo');
+    panel.innerHTML = '';
+
+    var hero = el('div','card');
+    hero.innerHTML =
+      '<div class="card-title">Resumo do prazo</div>'+
+      '<p class="card-sub">Início em '+DATEFULL(p.inicio)+' · entrega prevista em '+DATEFULL(p.fim)+'</p>'+
+      '<div class="kpi-row" style="margin-bottom:16px">'+
+        '<div class="kpi"><div class="k-label">Dias corridos</div><div class="k-value num">'+elapsed+'</div><div class="k-note">de '+totalDays+' dias totais</div></div>'+
+        '<div class="kpi"><div class="k-label">Dias restantes</div><div class="k-value num accent">'+remaining+'</div><div class="k-note">até '+DATEFULL(p.fim)+'</div></div>'+
+        '<div class="kpi"><div class="k-label">% prazo decorrido</div><div class="k-value num">'+PCT(pct,0)+'</div><div class="k-note">em relação ao total</div></div>'+
+        '<div class="kpi"><div class="k-label">Atividades adiantadas</div><div class="k-value num accent">'+antesCount+'</div><div class="k-note">iniciadas antes do planejado</div></div>'+
+      '</div>'+
+      '<div class="bigbar"><div class="bigbar-fill" style="width:'+(pct*100)+'%"></div></div>';
+    panel.appendChild(hero);
+
+    var peCard = el('div','card');
+    var months = ['SET','OUT','NOV','DEZ'];
+    var totalBands = p.previsto_executado_bands || 4;
+    var ph = '<div class="card-title">Planejado × Executado</div>'+
+      '<p class="card-sub">Planejamento original comparado ao realizado em obra</p>'+
+      '<div class="gantt-legend"><span><i style="background:var(--surface-soft);border:1.5px dashed var(--accent-soft)"></i>Planejado</span><span><i style="background:linear-gradient(90deg,var(--accent),var(--ink))"></i>Executado</span></div>'+
+      '<div class="gantt"><div class="gantt-grid" style="min-width:480px">'+
+      '<div style="display:flex;gap:8px;padding-bottom:6px;margin-bottom:4px;border-bottom:1px solid var(--line)">'+
+      '<div style="flex:none;width:68px"></div><div style="flex:1;display:grid;grid-template-columns:repeat(4,1fr);font-size:10.5px;font-weight:700;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.04em">'+
+      months.map(function(m){return '<div>'+m+'</div>';}).join('')+'</div></div>';
+    pe.forEach(function(r,idx){
+      var pLeft=r.planejado_start_band/totalBands*100, pW=r.planejado_w_band/totalBands*100;
+      var rLeft=r.real_start_band/totalBands*100, rW=r.real_w_band/totalBands*100;
+      ph += '<div class="gantt-pair gantt-pair-link" data-pe-idx="'+idx+'" role="button" tabindex="0">'+
+        '<div class="gantt-pair-label">'+esc(r.atividade_planejada)+' <span style="font-weight:400;color:var(--ink-faint)">· '+r.duracao+'d planejados</span><span class="gantt-pair-cta">Ver fotos ›</span></div>'+
+        '<div class="gantt-pair-row"><span class="gantt-pair-tag">Planejado</span><div class="gantt-pair-track"><div class="gantt-bar bar-plan" style="left:'+pLeft+'%;width:'+pW+'%"></div></div></div>'+
+        '<div class="gantt-pair-row"><span class="gantt-pair-tag">Executado</span><div class="gantt-pair-track"><div class="gantt-bar bar-real" style="left:'+rLeft+'%;width:'+rW+'%"></div></div></div>'+
+        '</div>';
+    });
+    ph += '</div></div>';
+    peCard.innerHTML = ph;
+    panel.appendChild(peCard);
+    peCard.querySelectorAll('.gantt-pair-link').forEach(function(elm){
+      var r = pe[parseInt(elm.getAttribute('data-pe-idx'),10)];
+      var matchEtapa = (DATA.obra.etapas.find(function(e){return e.nome_exib===r.etapa;})||{}).nome || r.etapa;
+      function go(){ goToFotosEtapa(matchEtapa); }
+      elm.addEventListener('click', go);
+      elm.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } });
+    });
+  }
+
+  /* ================= CUSTO ================= */
+  function renderCusto(){
+    var c = DATA.custo, k = c.custo_kpi;
+    var panel = document.getElementById('panel-custo');
+    panel.innerHTML = '';
+
+    var hero = el('div','card');
+    hero.innerHTML =
+      '<div class="card-title">Visão geral do custo</div>'+
+      '<p class="card-sub">Meta de custo já considera as reduções e substituições negociadas por insumo</p>'+
+      '<div class="kpi-row">'+
+        '<div class="kpi"><div class="k-label">Meta de custo</div><div class="k-value num">'+BRL.format(k.meta_projetada)+'</div><div class="k-note">orçamento inicial: '+BRL.format(k.orc_total_eap)+'</div></div>'+
+        '<div class="kpi"><div class="k-label">Realizado</div><div class="k-value num accent">'+BRL.format(k.realizado)+'</div><div class="k-note">pago direto + a reembolsar</div></div>'+
+        '<div class="kpi"><div class="k-label">Saldo da meta</div><div class="k-value num">'+BRL.format(k.saldo_meta)+'</div><div class="k-note">a realizar</div></div>'+
+        '<div class="kpi"><div class="k-label">% da meta executado</div><div class="k-value num">'+PCT(k.pct_meta,1)+'</div><div class="k-note">'+PCT(k.pct_executado,1)+' do orçamento inicial</div></div>'+
+      '</div>';
+    panel.appendChild(hero);
+
+    if(DATA.projecao && DATA.projecao.fluxo_meses){
+      var fm = DATA.projecao.fluxo_meses, em = DATA.projecao.executado_mensal, just = DATA.projecao.fluxo_justificativas||{};
+      var labels = fm.map(function(m){return m.mes.slice(0,3);});
+      var previstoV = fm.map(function(m){return m.previsto;});
+      var executadoV = fm.map(function(m){return em[m.mes]||0;});
+      var lc = el('div','card');
+      var lh = '<div class="card-title">Previsto × executado por mês</div>'+
+        '<p class="card-sub">Desembolso mensal projetado na Projeção de Custos original, comparado ao que realmente foi lançado no Controle Financeiro</p>'+
+        lineChart(labels,[
+          {values:previstoV, cls:'lc-prev', dot:'var(--accent-soft)'},
+          {values:executadoV, cls:'lc-exec', dot:'var(--accent)'}
+        ])+
+        '<div class="lc-legend"><span><i style="border-top:2.5px dashed var(--accent-soft)"></i>Previsto</span><span><i style="background:var(--accent)"></i>Executado</span></div>';
+      fm.forEach(function(m){
+        if(just[m.mes]){
+          lh += '<div style="margin-top:10px;padding:10px 12px;border-radius:10px;background:var(--surface-soft);border:1px solid var(--line)">'+
+            '<div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px">'+esc(m.mes)+'</div>'+
+            '<div style="font-size:12px;color:var(--ink-soft);line-height:1.5">'+esc(just[m.mes])+'</div></div>';
+        }
+      });
+      lc.innerHTML = lh;
+      panel.appendChild(lc);
+    }
+
+    var direto = 0, reemb = 0;
+    var lancAtivos = c.lancamentos.filter(function(l){return !l.excluido;});
+    lancAtivos.forEach(function(l){ if(l.tipo==='Reembolso') reemb+=l.valor; else direto+=l.valor; });
+    var split = el('div','card');
+    var sh = '<div class="card-title">Como o realizado foi pago</div>'+
+      '<p class="card-sub">Mesmo controle financeiro, cada lançamento fica vinculado a uma atividade do orçamento, pago direto pela obra ou adiantado pela construtora</p>'+
+      '<div class="split">'+
+        '<div class="s-card"><div class="s-label">Pago direto ao fornecedor</div><div class="s-val num">'+BRL.format(direto)+'</div></div>'+
+        '<div class="s-card"><div class="s-label">Realizados pela construtora, a ser reembolsado</div><div class="s-val num">'+BRL.format(reemb)+'</div></div>'+
+      '</div>';
+    var receiptListData = [];
+    var receiptIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l3 3v15l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3-2 1.3V3z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>';
+    function receiptGroup(titulo, items){
+      if(!items.length) return '';
+      var out = '<div class="receipt-group-title">'+esc(titulo)+'</div>';
+      items.sort(function(a,b){return b.valor-a.valor;}).forEach(function(l){
+        var dataFmt = DATEFULL((l.data||'').slice(0,10));
+        if(l.comprovante){
+          var ridx = receiptListData.length;
+          receiptListData.push({img:l.comprovante, label:esc(titleCase(l.desc)), meta:esc(l.favorecido)+' · '+dataFmt+' · '+BRL.format(l.valor), obs:''});
+          out += '<div class="receipt-row has-receipt" data-ridx="'+ridx+'" role="button" tabindex="0"><div class="receipt-icon">'+receiptIcon+'</div><div class="receipt-info"><div class="receipt-desc">'+esc(titleCase(l.desc))+'</div><div class="receipt-meta">'+esc(l.favorecido)+' · '+dataFmt+'</div></div><div class="receipt-val num">'+BRL.format(l.valor)+'</div></div>';
+        } else {
+          out += '<div class="receipt-row"><div class="receipt-icon receipt-icon-empty">'+receiptIcon+'</div><div class="receipt-info"><div class="receipt-desc">'+esc(titleCase(l.desc))+'</div><div class="receipt-meta">'+esc(l.favorecido)+' · '+dataFmt+' · <span class="receipt-noproof">sem comprovante digitalizado</span></div></div><div class="receipt-val num">'+BRL.format(l.valor)+'</div></div>';
+        }
+      });
+      return out;
+    }
+    var chevronIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M6 9l6 6 6-6"/></svg>';
+    sh += '<div class="receipt-block">'+
+      '<button type="button" class="receipt-accordion-btn" id="receiptAccordionBtn" aria-expanded="false">'+
+        '<span><span class="card-title" style="margin:0;display:inline">Comprovantes dos lançamentos</span><span class="receipt-accordion-count">'+lancAtivos.length+' lançamentos</span></span>'+
+        '<span class="receipt-accordion-chevron">'+chevronIcon+'</span>'+
+      '</button>'+
+      '<div class="receipt-accordion-body" id="receiptAccordionBody" hidden>'+
+      '<p class="card-sub">Toque em um comprovante para ampliar</p>'+
+      receiptGroup('Pago direto ao fornecedor', lancAtivos.filter(function(l){return l.tipo!=='Reembolso';}))+
+      receiptGroup('Realizados pela construtora, a ser reembolsado', lancAtivos.filter(function(l){return l.tipo==='Reembolso';}))+
+      '</div></div>';
+    split.innerHTML = sh;
+    panel.appendChild(split);
+    split.querySelectorAll('.receipt-row.has-receipt').forEach(function(row){
+      function openIt(){ openLightboxList(receiptListData, parseInt(row.getAttribute('data-ridx'),10)); }
+      row.addEventListener('click', openIt);
+      row.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openIt(); } });
+    });
+    var accBtn = document.getElementById('receiptAccordionBtn');
+    var accBody = document.getElementById('receiptAccordionBody');
+    accBtn.addEventListener('click', function(){
+      var open = accBtn.getAttribute('aria-expanded')==='true';
+      accBtn.setAttribute('aria-expanded', open?'false':'true');
+      accBody.hidden = open;
+    });
+    split.querySelectorAll('.receipt-more-btn').forEach(function(btn){
+      var g = btn.getAttribute('data-g');
+      var expanded = false;
+      var extraN = split.querySelectorAll('.receipt-row-extra[data-g="'+g+'"]').length;
+      btn.addEventListener('click', function(){
+        expanded = !expanded;
+        split.querySelectorAll('.receipt-row-extra[data-g="'+g+'"]').forEach(function(r){ r.hidden = !expanded; });
+        btn.textContent = expanded ? 'Ver menos' : 'Ver mais ('+extraN+' itens)';
+      });
+    });
+
+    var grp = el('div','card');
+    var gh = '<div class="card-title">EAP do orçamento × realizado</div><p class="card-sub">Estrutura analítica do orçamento (EAP) e os custos que estão caindo sobre cada grupo, previsto × executado</p>';
+    c.grupos_eap.filter(function(g){return g.orc>0}).sort(function(a,b){return b.orc-a.orc}).forEach(function(g){
+      var pct = g.orc>0 ? g.real/g.orc : 0;
+      var over = pct>1;
+      var w = Math.min(100,pct*100);
+      gh += '<div class="meter-row"><div class="meter-top"><span class="meter-name">'+esc(titleCase(g.desc))+'</span>'+
+        '<span class="meter-vals">'+BRL.format(g.real)+' <span style="opacity:.6">/ '+BRL.format(g.orc)+'</span></span></div>'+
+        '<div class="meter-track"><div class="meter-fill'+(over?' over':'')+'" style="width:'+w+'%"></div></div>'+
+        '<div class="meter-pct">'+PCT(pct,1)+' do orçado'+(over?' · acima do orçado':'')+'</div></div>';
+    });
+    grp.innerHTML = gh;
+    panel.appendChild(grp);
+
+    var cc = el('div','card');
+    var ch = '<div class="card-title">Por centro de custo</div><p class="card-sub">Nome livre informado em cada lançamento</p>';
+    c.centro_custo.slice().sort(function(a,b){return b.valor-a.valor}).forEach(function(x){
+      ch += '<div class="list-row"><div><span class="l-name">'+esc(x.nome)+'</span><span class="l-sub">'+x.qtd+' lançamento'+(x.qtd>1?'s':'')+'</span></div><div class="l-val num">'+BRL.format(x.valor)+'</div></div>';
+    });
+    cc.innerHTML = ch;
+    panel.appendChild(cc);
+
+    var atCard = el('div','card');
+    var sortedIns = c.insumos.slice().sort(function(a,b){return b.orc-a.orc;});
+    var ATBL_VISIBLE = 8;
+    var atH = '<div class="card-title">Planilha de análise</div><p class="card-sub">Orçamento × projetado × realizado, item a item — Ganho e Aderência só preenchidos quando 100% concluído</p>'+
+      '<div class="atbl-wrap"><table class="atbl"><thead><tr><th>Insumo</th><th>Custo total orçamento</th><th>Custo total projetado</th><th>Realizado</th><th>Ganho</th><th>Aderência à meta</th></tr></thead><tbody>';
+    var totOrc=0, totMeta=0, totGasto=0, totGanho=0, totAder=0;
+    sortedIns.forEach(function(i,idx){
+      var ganho = i.orc - i.gasto;
+      var aderencia = i.meta - i.gasto;
+      totOrc+=i.orc; totMeta+=i.meta; totGasto+=i.gasto;
+      var clsGanho = i.concluido ? (ganho<0?'neg':'pos') : 'dash';
+      var clsAder = i.concluido ? (aderencia<0?'neg':'pos') : 'dash';
+      var ganhoTxt = i.concluido ? BRL.format(ganho) : '–';
+      var aderTxt = i.concluido ? BRL.format(aderencia) : '–';
+      if(i.concluido){ totGanho+=ganho; totAder+=aderencia; }
+      var rowCls = idx>=ATBL_VISIBLE ? ' class="atbl-row-extra" hidden' : '';
+      atH += '<tr'+rowCls+'><td>'+esc(titleCase(i.desc))+'</td><td class="num">'+BRL.format(i.orc)+'</td><td class="num">'+BRL.format(i.meta)+'</td><td class="num">'+BRL.format(i.gasto)+'</td>'+
+        '<td class="num '+clsGanho+'">'+ganhoTxt+'</td><td class="num '+clsAder+'">'+aderTxt+'</td></tr>';
+    });
+    var extraCount = sortedIns.length - ATBL_VISIBLE;
+    if(extraCount>0){
+      atH += '<tr class="atbl-more-row"><td colspan="6"><button type="button" class="atbl-more-btn" id="atblMoreBtn">Ver mais ('+extraCount+' itens)</button></td></tr>';
+    }
+    atH += '</tbody><tfoot><tr><td>Total ('+sortedIns.length+' itens)</td><td class="num">'+BRL.format(totOrc)+'</td><td class="num">'+BRL.format(totMeta)+'</td><td class="num">'+BRL.format(totGasto)+'</td>'+
+      '<td class="num">'+BRL.format(totGanho)+'</td><td class="num">'+BRL.format(totAder)+'</td></tr></tfoot></table></div>';
+    atCard.innerHTML = atH;
+    panel.appendChild(atCard);
+    var moreBtn = document.getElementById('atblMoreBtn');
+    if(moreBtn){
+      var expanded = false;
+      moreBtn.addEventListener('click', function(){
+        expanded = !expanded;
+        atCard.querySelectorAll('.atbl-row-extra').forEach(function(tr){ tr.hidden = !expanded; });
+        moreBtn.textContent = expanded ? 'Ver menos' : 'Ver mais ('+extraCount+' itens)';
+      });
+    }
+
+    if(c.eap_completo && c.eap_completo.length){
+      var eapCard = el('div','card');
+      var eapRows = c.eap_completo;
+      var eapH = '<div class="card-title">EAP completa do orçamento</div><p class="card-sub">Estrutura analítica do orçamento com todos os níveis — código, descrição, orçado e realizado item a item</p>'+
+        '<div class="atbl-wrap"><table class="atbl eap-full"><thead><tr><th>Código</th><th>Descrição</th><th>Und.</th><th>Qtd.</th><th>Preço unit.</th><th>Orçado</th><th>Realizado</th><th>Saldo</th><th>%</th></tr></thead><tbody>';
+      eapRows.forEach(function(g){
+        var pct = g.orc>0 ? g.real/g.orc : 0;
+        var over = g.saldo<0;
+        var rowCls = ' class="eap-l'+g.nivel+(g.nivel>=4?' eap-row-extra" hidden':'"');
+        eapH += '<tr'+rowCls+'><td>'+esc(g.code)+'</td><td>'+esc(titleCase(g.desc))+'</td>'+
+          '<td>'+(g.und?esc(g.und):'')+'</td><td>'+(g.quant!=null?g.quant:'')+'</td>'+
+          '<td>'+(g.preco_unit!=null?BRL.format(g.preco_unit):'')+'</td>'+
+          '<td class="num">'+BRL.format(g.orc)+'</td><td class="num">'+BRL.format(g.real)+'</td>'+
+          '<td class="num'+(over?' neg':'')+'">'+BRL.format(g.saldo)+'</td><td class="num">'+PCT(pct,1)+'</td></tr>';
+      });
+      var eapExtraCount = eapRows.filter(function(g){return g.nivel>=4;}).length;
+      eapH += '<tr class="atbl-more-row"><td colspan="9"><button type="button" class="atbl-more-btn" id="eapMoreBtn">Ver detalhamento completo ('+eapExtraCount+' itens)</button></td></tr>';
+      eapH += '</tbody></table></div>';
+      eapCard.innerHTML = eapH;
+      panel.appendChild(eapCard);
+      var eapMoreBtn = document.getElementById('eapMoreBtn');
+      if(eapMoreBtn){
+        var eapExpanded = false;
+        eapMoreBtn.addEventListener('click', function(){
+          eapExpanded = !eapExpanded;
+          eapCard.querySelectorAll('.eap-row-extra').forEach(function(tr){ tr.hidden = !eapExpanded; });
+          eapMoreBtn.textContent = eapExpanded ? 'Ver menos' : 'Ver detalhamento completo ('+eapExtraCount+' itens)';
+        });
+      }
+    }
+  }
+
+  function titleCase(s){
+    if(!s) return '';
+    return s.charAt(0).toUpperCase()+s.slice(1);
+  }
+
+  /* ================= FOTOS ================= */
+  var allPhotos = [];
+  var fotosMode = 'tempo';
+  function renderFotos(){
+    var panel = document.getElementById('panel-fotos');
+    panel.innerHTML = '';
+    allPhotos = DATA.obra.fotos;
+
+    var hero = el('div','card');
+    hero.innerHTML = '<div class="card-title">Registro fotográfico</div>'+
+      '<p class="card-sub">'+allPhotos.length+' fotos · toque em uma foto para ampliar</p>'+
+      '<div class="toggle-group">'+
+        '<button class="toggle-btn" data-mode="servico">Agrupar por serviço</button>'+
+        '<button class="toggle-btn" data-mode="tempo">Linha do tempo</button>'+
+      '</div>';
+    panel.appendChild(hero);
+    hero.querySelectorAll('.toggle-btn').forEach(function(b){
+      if(b.getAttribute('data-mode')===fotosMode) b.classList.add('active');
+      b.addEventListener('click', function(){
+        fotosMode = b.getAttribute('data-mode');
+        renderFotos();
+      });
+    });
+
+    var gc = el('div');
+    if(fotosMode==='servico'){
+      DATA.obra.etapas.forEach(function(etapa){
+        var photos = allPhotos.filter(function(f){return f.etapa===etapa.nome});
+        var card = el('div','card gallery-group');
+        card.setAttribute('data-etapa', etapa.nome);
+        var range = etapa.inicio===etapa.fim ? DATEFULL(etapa.inicio) : DATEFMT(etapa.inicio)+' – '+DATEFULL(etapa.fim);
+        var h = '<div class="gg-head"><span class="gg-title">'+esc(etapa.nome_exib)+'</span><span class="gg-range">'+range+'</span></div><div class="grid-photos">';
+        photos.forEach(function(f){
+          h += '<div class="photo-thumb" data-n="'+f.n+'"><img src="'+f.img+'" loading="lazy" alt="'+esc(f.label)+'"><span class="pn">'+String(f.n).padStart(2,'0')+'</span></div>';
+        });
+        h += '</div>';
+        card.innerHTML = h;
+        gc.appendChild(card);
+      });
+    } else {
+      var sorted = allPhotos.slice().sort(function(a,b){
+        if(a.data!==b.data) return a.data<b.data?-1:1;
+        return a.n-b.n;
+      });
+      var byDay = {}; var order = [];
+      sorted.forEach(function(f){
+        if(!byDay[f.data]){byDay[f.data]=[];order.push(f.data);}
+        byDay[f.data].push(f);
+      });
+      var card = el('div','card');
+      var h = '<div class="timeline">';
+      order.forEach(function(day){
+        var photos = byDay[day];
+        var first = photos[0];
+        h += '<div class="tl-item"><div class="tl-rail"><div class="tl-dot"></div><div class="tl-line"></div></div>'+
+          '<div class="tl-body"><div class="tl-dates">'+first.dia_semana+', '+DATEFULL(day)+'</div>'+
+          '<div class="tl-meta" style="margin-bottom:8px">'+photos.length+' foto'+(photos.length>1?'s':'')+' · '+esc(first.etapa_exib)+'</div>'+
+          '<div class="grid-photos">';
+        photos.forEach(function(f){
+          h += '<div class="photo-thumb" data-n="'+f.n+'"><img src="'+f.img+'" loading="lazy" alt="'+esc(f.label)+'"><span class="pn">'+String(f.n).padStart(2,'0')+'</span></div>';
+        });
+        h += '</div></div></div>';
+      });
+      h += '</div>';
+      card.innerHTML = h;
+      gc.appendChild(card);
+    }
+    panel.appendChild(gc);
+
+    panel.querySelectorAll('.photo-thumb').forEach(function(t){
+      t.addEventListener('click', function(){ openLightbox(parseInt(t.getAttribute('data-n'),10)); });
+    });
+  }
+
+  var lbIndex = -1;
+  var lbList = [];
+  function openLightbox(n){
+    var idx = allPhotos.findIndex(function(f){return f.n===n});
+    if(idx<0) return;
+    lbList = allPhotos.map(function(f){
+      return {img:f.img, label:f.label, meta:'Nº '+String(f.n).padStart(2,'0')+' · '+f.dia_semana+', '+DATEFULL(f.data)+' · '+f.etapa_exib, obs:f.obs||''};
+    });
+    lbIndex = idx;
+    showLb();
+    document.getElementById('lightbox').hidden = false;
+  }
+  function openLightboxList(list, idx){
+    if(!list.length) return;
+    lbList = list;
+    lbIndex = idx;
+    showLb();
+    document.getElementById('lightbox').hidden = false;
+  }
+  function showLb(){
+    var f = lbList[lbIndex];
+    document.getElementById('lbImg').src = f.img;
+    document.getElementById('lbImg').alt = f.label||'';
+    document.getElementById('lbLabel').textContent = f.label||'';
+    document.getElementById('lbMeta').textContent = f.meta||'';
+    document.getElementById('lbObs').textContent = f.obs || '';
+  }
+  function closeLb(){ document.getElementById('lightbox').hidden = true; }
+  document.getElementById('lbClose').addEventListener('click', closeLb);
+  document.getElementById('lightbox').addEventListener('click', function(e){ if(e.target.id==='lightbox') closeLb(); });
+  document.getElementById('lbPrev').addEventListener('click', function(){ lbIndex=(lbIndex-1+lbList.length)%lbList.length; showLb(); });
+  document.getElementById('lbNext').addEventListener('click', function(){ lbIndex=(lbIndex+1)%lbList.length; showLb(); });
+  document.addEventListener('keydown', function(e){
+    if(document.getElementById('lightbox').hidden) return;
+    if(e.key==='Escape') closeLb();
+    if(e.key==='ArrowLeft') document.getElementById('lbPrev').click();
+    if(e.key==='ArrowRight') document.getElementById('lbNext').click();
+  });
+
+  /* ================= PROJEÇÃO (proposta original) ================= */
+  function renderProjecao(){
+    var panel = document.getElementById('panel-projecao');
+    panel.innerHTML = '';
+    var pr = DATA.projecao;
+    if(!pr){ panel.appendChild(el('div','card','<p class="card-sub" style="margin:0">Sem dados de projeção.</p>')); return; }
+
+    var intro = el('div','card');
+    intro.innerHTML = '<div class="card-title">Projeção original da obra</div>'+
+      '<p class="card-sub" style="margin-bottom:0">Conteúdo da proposta "Projeção de Custos" enviada no início do projeto — custo por categoria, Curva ABC de insumos, planejamento e fluxo de caixa. Os valores aqui são os mesmos da proposta original; o acompanhamento do que já foi de fato gasto fica nas abas Custo e Fotos.</p>';
+    panel.appendChild(intro);
+
+    // ---- custo por categoria ----
+    var cc = el('div','card');
+    var ch = '<div class="card-title">Custo projetado por categoria</div>'+
+      '<div class="kpi-row" style="margin-bottom:14px">'+
+        '<div class="kpi"><div class="k-label">Obra civil</div><div class="k-value num">'+BRL.format(pr.categorias_blocos.obra_civil)+'</div></div>'+
+        '<div class="kpi"><div class="k-label">Ambientação</div><div class="k-value num">'+BRL.format(pr.categorias_blocos.ambientacao)+'</div></div>'+
+      '</div>';
+    pr.categorias.forEach(function(c){
+      ch += '<div class="cat-row"><div class="cat-top"><span class="cat-name">'+esc(c.nome)+'</span><span class="meter-vals"><b>'+BRL.format(c.valor)+'</b> · '+PCT(c.pct,1)+'</span></div>'+
+        '<div class="cat-desc">'+esc(c.desc)+'</div>'+
+        '<div class="cat-track"><div class="cat-fill" style="width:'+Math.max(10,c.pct*100)+'%"><span class="cv"></span></div></div></div>';
+    });
+    ch += '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">'+
+      '<span style="font-size:13px;font-weight:700">Custo projetado total</span>'+
+      '<span style="font-family:var(--font-display);font-size:19px;font-weight:700;color:var(--accent)">'+BRL.format(pr.categorias_total)+'</span></div>';
+    cc.innerHTML = ch;
+    panel.appendChild(cc);
+
+    // ---- curva ABC (derivada dos mesmos 63 insumos já usados na aba Custo, garantindo consistência) ----
+    var insumos = DATA.custo.insumos.slice();
+    var classes = {A:{n:0,v:0},B:{n:0,v:0},C:{n:0,v:0}};
+    insumos.forEach(function(i){ classes[i.cls].n++; classes[i.cls].v+=i.orc; });
+    var totOrc = insumos.reduce(function(a,i){return a+i.orc;},0);
+    var top15 = insumos.slice().sort(function(a,b){return b.orc-a.orc;}).slice(0,15);
+    var top15sum = top15.reduce(function(a,i){return a+i.orc;},0);
+
+    var abc = el('div','card');
+    var ah = '<div class="card-title">Curva ABC de insumos</div>'+
+      '<p class="card-sub">'+PCT(top15sum/totOrc,1)+' do custo está concentrado em apenas 15 itens ('+PCT(15/insumos.length,0)+' dos insumos) — onde atuar para economizar, do maior para o menor peso</p>'+
+      '<div class="split split-3" style="margin-bottom:16px">';
+    ['A','B','C'].forEach(function(k){
+      ah += '<div class="s-card"><div class="s-label">Classe '+k+'</div><div class="s-val num">'+BRL.format(classes[k].v)+'</div>'+
+        '<div class="k-note" style="margin-top:2px">'+classes[k].n+' itens · '+PCT(classes[k].v/totOrc,1)+'</div></div>';
+    });
+    ah += '</div>';
+    var cum = 0;
+    top15.forEach(function(i,idx){
+      cum += i.orc;
+      ah += '<div class="meter-row"><div class="meter-top"><span class="meter-name">'+String(idx+1).padStart(2,'0')+' · '+esc(titleCase(i.desc))+'</span>'+
+        '<span class="meter-vals">'+BRL.format(i.orc)+' · '+PCT(i.orc/totOrc,1)+'</span></div>'+
+        '<div class="meter-track"><div class="meter-fill" style="width:'+(i.orc/top15[0].orc*100)+'%"></div></div>'+
+        '<div class="meter-pct">acumulado '+PCT(cum/totOrc,1)+'</div></div>';
+    });
+    abc.innerHTML = ah;
+    panel.appendChild(abc);
+
+    // ---- planejamento da obra (gantt) ----
+    var gc = el('div','card');
+    var months = ['SET','OUT','NOV','DEZ'];
+    var gh = '<div class="card-title">Planejamento da obra</div><p class="card-sub">Sequência e duração de cada etapa, como projetadas originalmente</p>'+
+      '<div class="gantt"><div class="gantt-grid">'+
+      '<div class="gantt-head"><div></div>'+months.map(function(m){return '<div>'+m+'</div>';}).join('')+'</div>';
+    pr.gantt.forEach(function(t){
+      gh += '<div class="gantt-row"><div class="gantt-label">'+esc(t.nome)+'</div>'+
+        '<div class="gantt-track"><div class="gantt-bar" style="left:'+(t.start/4*100)+'%;width:'+(t.w/4*100)+'%">'+t.dur+'</div></div></div>';
+    });
+    gh += '</div></div><p style="font-size:11px;color:var(--ink-faint);margin:12px 0 0;line-height:1.5">'+esc(pr.gantt_nota)+'</p>';
+    gc.innerHTML = gh;
+    panel.appendChild(gc);
+
+    // ---- fluxo de caixa projetado (detalhado por mês) ----
+    var fcard = el('div','card');
+    var fh = '<div class="card-title">Fluxo de caixa projetado</div><p class="card-sub">Detalhamento dos itens que compõem o desembolso previsto em cada mês</p>';
+    pr.fluxo_meses.forEach(function(m){
+      fh += '<div style="margin:14px 0 2px;display:flex;justify-content:space-between;align-items:baseline">'+
+        '<span style="font-size:13px;font-weight:700;color:var(--accent)">'+esc(m.mes).toUpperCase()+'</span>'+
+        '<span style="font-family:var(--font-display);font-size:15px;font-weight:700">'+BRL.format(m.previsto)+'</span></div>';
+      m.itens.forEach(function(it){
+        fh += '<div class="list-row"><span class="l-name" style="font-weight:400">'+esc(it.nome)+'</span><span class="l-val" style="font-weight:600">'+BRL.format(it.valor)+'</span></div>';
+      });
+    });
+    fh += '<div style="margin-top:16px;padding:13px 14px;border-radius:12px;background:var(--surface-soft);border:1px solid var(--line)">'+
+      '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-faint);margin-bottom:6px">Premissas do fluxo de caixa</div>'+
+      '<div style="font-size:12px;color:var(--ink-soft);line-height:1.6">Compra antecipada parcelada proporcionalmente ao longo do período da obra (Set–Dez), conforme antecedência de cada item:<ul style="margin:6px 0;padding-left:18px">'+
+      pr.fluxo_premissas.map(function(p){return '<li>'+esc(p)+'</li>';}).join('')+
+      '</ul>'+esc(pr.fluxo_premissas_extra)+'</div></div>';
+    fcard.innerHTML = fh;
+    panel.appendChild(fcard);
+
+    // ---- memorial de acabamentos ----
+    var mcard = el('div','card');
+    var mh = '<div class="card-title">Memorial de acabamentos</div><p class="card-sub">Especificação de materiais por ambiente</p>';
+    pr.memorial.forEach(function(room){
+      mh += '<div class="mem-room"><div class="mem-room-head"><span>'+esc(room.nome)+'</span>'+(room.area?'<span class="mem-room-area">'+esc(room.area)+'</span>':'')+'</div>';
+      room.itens.forEach(function(it){
+        mh += '<div class="mem-item"><div class="mi-item">'+esc(it[0])+'</div><div class="mi-desc">'+esc(it[1])+'</div>'+(it[2]?'<div class="mi-obs">'+esc(it[2])+'</div>':'')+'</div>';
+      });
+      mh += '</div>';
+    });
+    mcard.innerHTML = mh;
+    panel.appendChild(mcard);
+  }
+
+  /* ================= PRÓXIMOS PASSOS ================= */
+  function renderPassos(){
+    var panel = document.getElementById('panel-passos');
+    panel.innerHTML = '';
+    var items = DATA.proximos_passos || [];
+    var card = el('div','card');
+    if(!items.length){
+      card.innerHTML =
+        '<div class="empty">'+
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>'+
+          '<h3>Nenhum item cadastrado ainda</h3>'+
+          '<p>Assim que as próximas compras e atividades forem combinadas, elas aparecem aqui — é só avisar pelo chat, do mesmo jeito que os recibos e fotos.</p>'+
+        '</div>';
+    } else {
+      var byCat = {};
+      var order = [];
+      items.forEach(function(it){
+        var cat = it.categoria || 'Outros';
+        if(!byCat[cat]){byCat[cat]=[];order.push(cat);}
+        byCat[cat].push(it);
+      });
+      var h = '<div class="card-title">Próximos passos</div><p class="card-sub">Compras e atividades combinadas para as próximas semanas</p>';
+      order.forEach(function(cat){
+        h += '<div style="margin:14px 0 6px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--accent)">'+esc(cat)+'</div>';
+        byCat[cat].forEach(function(it){
+          var pillClass = it.status==='feito' ? 'good' : (it.status==='atrasado' ? 'bad' : 'neutral');
+          var pillText = it.status==='feito' ? 'Concluído' : (it.status==='atrasado' ? 'Atrasado' : 'Planejado');
+          h += '<div class="list-row"><div><span class="l-name">'+esc(it.titulo)+'</span>'+(it.quando?'<span class="l-sub">'+esc(it.quando)+'</span>':'')+'</div><span class="pill '+pillClass+'">'+pillText+'</span></div>';
+        });
+      });
+      card.innerHTML = h;
+    }
+    panel.appendChild(card);
+  }
+
+  /* ================= TABS ================= */
+  var panels = {prazo:'panel-prazo', custo:'panel-custo', fotos:'panel-fotos', passos:'panel-passos'};
+  var renderers = {prazo:renderPrazo, custo:renderCusto, fotos:renderFotos, passos:renderPassos};
+  var rendered = {};
+  function selectTab(name){
+    if(!panels[name]) name='prazo';
+    Object.keys(panels).forEach(function(k){
+      document.getElementById(panels[k]).hidden = (k!==name);
+    });
+    document.querySelectorAll('.tab-btn').forEach(function(b){
+      b.setAttribute('aria-selected', b.getAttribute('data-tab')===name ? 'true':'false');
+    });
+    if(!rendered[name]){ renderers[name](); rendered[name]=true; }
+    try{ if(location.hash.slice(1)!==name) history.replaceState(null,'','#'+name); }catch(e){}
+  }
+
+  function goToFotosEtapa(etapaNome){
+    fotosMode = 'servico';
+    renderFotos();
+    rendered.fotos = true;
+    selectTab('fotos');
+    setTimeout(function(){
+      var groups = document.querySelectorAll('#panel-fotos .gallery-group');
+      var target = null;
+      for(var i=0;i<groups.length;i++){ if(groups[i].getAttribute('data-etapa')===etapaNome){ target=groups[i]; break; } }
+      if(target){
+        target.scrollIntoView({behavior:'smooth', block:'start'});
+        target.classList.add('gg-highlight');
+        setTimeout(function(){ target.classList.remove('gg-highlight'); }, 1800);
+      }
+    }, 60);
+  }
+  document.querySelectorAll('.tab-btn').forEach(function(b){
+    b.addEventListener('click', function(){ selectTab(b.getAttribute('data-tab')); });
+  });
+  window.addEventListener('hashchange', function(){ selectTab(location.hash.slice(1)); });
+
+  var initial = location.hash ? location.hash.slice(1) : 'prazo';
+  selectTab(initial);
+
+  /* ================= THEME TOGGLE ================= */
+  var sunIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2.5M12 19v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.5M19 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></svg>';
+  var moonIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.3A8.5 8.5 0 1 1 9.7 4a7 7 0 0 0 10.3 10.3z"/></svg>';
+  var root = document.documentElement;
+  var btn = document.getElementById('themeToggle');
+  function currentTheme(){
+    var attr = root.getAttribute('data-theme');
+    if(attr==='light' || attr==='dark') return attr;
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  function paintToggle(){
+    btn.innerHTML = currentTheme()==='dark' ? sunIcon : moonIcon;
+  }
+  btn.addEventListener('click', function(){
+    root.setAttribute('data-theme', currentTheme()==='dark' ? 'light' : 'dark');
+    paintToggle();
+  });
+  paintToggle();
+})();
+</script>
